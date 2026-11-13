@@ -10,8 +10,7 @@ const read = (directory, name) => {
   if (!stat.isFile() || stat.isSymbolicLink()) throw Error('Release files must be regular files');
   return fs.readFileSync(file);
 };
-export function releaseBundle(directory) {
-  const bytes = read(directory, 'manifest.json');
+export function releaseBundle(directory, bytes = read(directory, 'manifest.json')) {
   const manifest = JSON.parse(bytes);
   if (manifest.protocol !== '1.0' || typeof manifest.version !== 'string' ||
       !Number.isSafeInteger(manifest.bytes) || manifest.bytes <= 0 || !digest.test(manifest.sha256) ||
@@ -48,5 +47,5 @@ export function verifyRelease(directory, key) {
   const signature = Buffer.from(encoded, 'base64');
   if (signature.length !== 64 || signature.toString('base64') !== encoded || !verify(null, raw, key, signature))
     throw Error('Invalid Ed25519 release signature');
-  return releaseBundle(directory);
+  return releaseBundle(directory, raw);
 }
