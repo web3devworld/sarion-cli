@@ -24,3 +24,5 @@ await build({
   sourcemap: true,
 });
 fs.copyFileSync('packages/platform/fs-helper.py', 'dist/fs-helper.py');
+
+fs.copyFileSync('packages/platform/fs-windows.py', 'dist/fs-windows.py');

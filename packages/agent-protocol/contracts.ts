@@ -1,21 +1,41 @@
 // Protocol 1.0, architecture 90268a2. No Worker dependencies.
 export type Id = string;
 export type Hash = string;
-export type Json = null | boolean | number | string | Json[] | { [k: string]: Json };
-export type Mode = 'read-only' | 'workspace-write' | 'approval-required' | 'trusted-automation';
-export type Boundary = { id: Id; kind: 'cloud' | 'sovereign'; issuer: string; audience: string };
-export type Principal = { subject: Id; tenantId: Id; accountId: Id; scopes: string[] };
+export type Json =
+  | null
+  | boolean
+  | number
+  | string
+  | Json[]
+  | { [k: string]: Json };
+export type Mode =
+  | "read-only"
+  | "workspace-write"
+  | "approval-required"
+  | "trusted-automation";
+export type Boundary = {
+  id: Id;
+  kind: "cloud" | "sovereign";
+  issuer: string;
+  audience: string;
+};
+export type Principal = {
+  subject: Id;
+  tenantId: Id;
+  accountId: Id;
+  scopes: string[];
+};
 export type State =
-  | 'accepted'
-  | 'running'
-  | 'awaiting_tool'
-  | 'awaiting_approval'
-  | 'cancel_requested'
-  | 'committed'
-  | 'cancelled'
-  | 'failed'
-  | 'uncertain'
-  | 'abandoned';
+  | "accepted"
+  | "running"
+  | "awaiting_tool"
+  | "awaiting_approval"
+  | "cancel_requested"
+  | "committed"
+  | "cancelled"
+  | "failed"
+  | "uncertain"
+  | "abandoned";
 export interface Limits {
   requestBytes: number;
   contextBytes: number;
@@ -27,7 +47,7 @@ export interface Limits {
   maxSteps: number;
 }
 export interface Capabilities {
-  protocol: '1.0';
+  protocol: "1.0";
   boundary: Boundary;
   principal: Principal;
   policyRevision: string;
@@ -57,7 +77,7 @@ export interface ModelCapability {
   contextTokens: number | null;
   maxOutputTokens: number;
   efforts: string[];
-  selection: 'automatic' | 'preferred' | 'strict';
+  selection: "automatic" | "preferred" | "strict";
 }
 export interface Usage {
   inputTokens: number | null;
@@ -66,7 +86,11 @@ export interface Usage {
   percentUsed: number | null;
   dailyPercentUsed: number | null;
   paused: boolean;
-  cost: { amountMicro: number; currency: string; basis: 'settled' | 'estimate' } | null;
+  cost: {
+    amountMicro: number;
+    currency: string;
+    basis: "settled" | "estimate";
+  } | null;
   chargedAmountMicro: number | null;
   billingUrl: string | null;
 }
@@ -75,14 +99,14 @@ export interface OpenSession {
   conversationId?: Id;
   projectId?: Id;
   workspace: { id: Id; rootHash: Hash; revision: string }; // no absolute host path
-  level: 'A' | 'B';
+  level: "A" | "B";
   mode: Mode;
   tools: ToolDescriptor[];
 }
 export interface Accepted {
   sessionId: Id;
   commandId: Id;
-  state: 'accepted';
+  state: "accepted";
   revision: number;
 }
 export interface SessionSnapshot {
@@ -100,13 +124,20 @@ export interface SessionSnapshot {
 export interface SubmitCommand {
   commandId: Id;
   expectedRevision: number;
-  kind: 'message' | 'task';
+  kind: "message" | "task";
   text: string;
   model: string;
   effort?: string;
   context: ContextRef[];
   memory: MemoryRef[];
-  budget: { maxSteps: number; maxWallMs: number; maxCostMicro: number | null }; // currency/billing unit provided by deployment
+  budget: {
+    maxSteps: number;
+    maxWallMs: number;
+    maxCostMicro: number | null;
+    maxToolCalls?: number;
+    maxOutputTokens?: number;
+    maxContextTokens?: number;
+  }; // currency/billing unit provided by deployment
 }
 export interface CommandSnapshot {
   sessionId: Id;
@@ -120,7 +151,7 @@ export interface CommandSnapshot {
   usage: Usage | null;
   error: AgentError | null;
   execution: {
-    state: 'ready' | 'claimed' | 'recorded' | 'uncertain' | 'denied';
+    state: "ready" | "claimed" | "recorded" | "uncertain" | "denied";
     claimId: Id | null;
     executorId: Id | null;
     argsHash: Hash;
@@ -138,24 +169,31 @@ export interface ContextChunk {
   sha256: Hash;
   content: string;
   revision: string;
-  origin: 'user' | 'repository' | 'tool';
-  trust: 'user-input' | 'untrusted-data';
-  classification: 'project' | 'sensitive-approved';
+  origin: "user" | "repository" | "tool";
+  trust: "user-input" | "untrusted-data";
+  classification: "project" | "sensitive-approved";
   consentId: Id;
 }
 export interface MemoryRef {
   id: Id;
-  scope: 'user' | 'project' | 'conversation';
+  scope: "user" | "project" | "conversation";
   projectId: Id | null;
   version: string;
 }
-export type Action = 'read' | 'write' | 'execute' | 'network' | 'git-history' | 'destructive' | 'production';
+export type Action =
+  | "read"
+  | "write"
+  | "execute"
+  | "network"
+  | "git-history"
+  | "destructive"
+  | "production";
 export interface ToolDescriptor {
   name: string;
   version: string;
   inputSchema: Json;
   actions: Action[];
-  retryClass: 'read' | 'idempotent-verified' | 'non-idempotent';
+  retryClass: "read" | "idempotent-verified" | "non-idempotent";
 }
 export interface ToolRequest {
   commandId: Id;
@@ -181,7 +219,7 @@ export interface ApprovalDecision {
   id: Id;
   commandId: Id;
   actionHash: Hash;
-  decision: 'allow-once' | 'deny';
+  decision: "allow-once" | "deny";
   localDecisionId: Id;
   policyRevision: string;
 }
@@ -194,7 +232,7 @@ export interface ClaimRequest {
 }
 export type ClaimResponse =
   | { granted: true; executionToken: string; claimId: Id }
-  | { granted: false; state: 'claimed' | 'recorded' | 'uncertain' | 'denied' };
+  | { granted: false; state: "claimed" | "recorded" | "uncertain" | "denied" };
 export interface ExecutionReceipt {
   receiptId: Id;
   sessionId: Id;
@@ -206,13 +244,28 @@ export interface ExecutionReceipt {
   workspaceId: Id;
   policyRevision: string;
   approvalDecisionId: Id | null;
-  state: 'succeeded' | 'failed-known' | 'denied' | 'cancelled-known' | 'uncertain';
+  state:
+    | "succeeded"
+    | "failed-known"
+    | "denied"
+    | "cancelled-known"
+    | "uncertain";
   startedAt: number | null;
   endedAt: number;
   exitCode: number | null;
   signal: string | null;
-  output: { sha256: Hash; excerpt: string; bytes: number; truncated: boolean } | null;
-  effects: Array<{ path: string; beforeHash: Hash | null; afterHash: Hash | null; status: 'verified' | 'unknown' }>;
+  output: {
+    sha256: Hash;
+    excerpt: string;
+    bytes: number;
+    truncated: boolean;
+  } | null;
+  effects: Array<{
+    path: string;
+    beforeHash: Hash | null;
+    afterHash: Hash | null;
+    status: "verified" | "unknown";
+  }>;
   result: Json | null; // schema-validated, bounded, untrusted tool result
   evidence: string[]; // local evidence IDs, never arbitrary remote URLs
   receiptHash: Hash;
@@ -226,53 +279,53 @@ export interface ReceiptAck {
 export interface CancelRequest {
   cancelId: Id;
   commandId: Id;
-  reason: 'user' | 'timeout' | 'policy';
+  reason: "user" | "timeout" | "policy";
 }
 export interface Resolution {
   resolutionId: Id;
   commandId: Id;
-  disposition: 'verified-complete' | 'verified-no-effect' | 'abandon';
+  disposition: "verified-complete" | "verified-no-effect" | "abandon";
   evidence: string[];
   receiptHash: Hash | null;
 }
 export interface AgentError {
   code:
-    | 'UNAUTHENTICATED'
-    | 'FORBIDDEN'
-    | 'TENANT_MISMATCH'
-    | 'POLICY_DENIED'
-    | 'MODEL_UNAVAILABLE'
-    | 'CAPABILITY_MISSING'
-    | 'PROTOCOL_UNSUPPORTED'
-    | 'QUOTA_EXCEEDED'
-    | 'RATE_LIMITED'
-    | 'CONTEXT_TOO_LARGE'
-    | 'REVISION_CONFLICT'
-    | 'COMMAND_CONFLICT'
-    | 'TURN_UNRESOLVED'
-    | 'EXECUTION_UNCERTAIN'
-    | 'CURSOR_EXPIRED'
-    | 'REQUEST_EXPIRED'
-    | 'INVALID_REQUEST'
-    | 'INTERNAL';
+    | "UNAUTHENTICATED"
+    | "FORBIDDEN"
+    | "TENANT_MISMATCH"
+    | "POLICY_DENIED"
+    | "MODEL_UNAVAILABLE"
+    | "CAPABILITY_MISSING"
+    | "PROTOCOL_UNSUPPORTED"
+    | "QUOTA_EXCEEDED"
+    | "RATE_LIMITED"
+    | "CONTEXT_TOO_LARGE"
+    | "REVISION_CONFLICT"
+    | "COMMAND_CONFLICT"
+    | "TURN_UNRESOLVED"
+    | "EXECUTION_UNCERTAIN"
+    | "CURSOR_EXPIRED"
+    | "REQUEST_EXPIRED"
+    | "INVALID_REQUEST"
+    | "INTERNAL";
   message: string;
   commandId: Id | null;
-  retry: 'never' | 'read-status' | 'same-id-after-delay';
+  retry: "never" | "read-status" | "same-id-after-delay";
   retryAfterMs: number | null;
 }
 export type EventPayload =
-  | { t: 'ping' }
-  | { t: 'phase'; phase: string }
-  | { t: 'delta'; text?: string; reset?: true; provisional: true }
-  | { t: 'tool_request'; request: ToolRequest }
-  | { t: 'approval_request'; approval: ApprovalRequest }
-  | { t: 'receipt_ack'; ack: ReceiptAck }
-  | { t: 'usage'; usage: Usage }
-  | { t: 'state'; snapshot: CommandSnapshot }
-  | { t: 'result'; status: number; body: CommandSnapshot }
-  | { t: 'error'; error: AgentError };
+  | { t: "ping" }
+  | { t: "phase"; phase: string }
+  | { t: "delta"; text?: string; reset?: true; provisional: true }
+  | { t: "tool_request"; request: ToolRequest }
+  | { t: "approval_request"; approval: ApprovalRequest }
+  | { t: "receipt_ack"; ack: ReceiptAck }
+  | { t: "usage"; usage: Usage }
+  | { t: "state"; snapshot: CommandSnapshot }
+  | { t: "result"; status: number; body: CommandSnapshot }
+  | { t: "error"; error: AgentError };
 export type AgentEvent = EventPayload & {
-  v: '1.0';
+  v: "1.0";
   sessionId: Id;
   commandId: Id | null;
   eventId: Id;
@@ -314,9 +367,9 @@ export interface EffectPlan {
   maxOutputBytes: number;
 }
 export type Decision =
-  | { kind: 'deny'; reason: string }
-  | { kind: 'prompt'; request: ApprovalRequest }
-  | { kind: 'allow'; grant: LocalGrant };
+  | { kind: "deny"; reason: string }
+  | { kind: "prompt"; request: ApprovalRequest }
+  | { kind: "allow"; grant: LocalGrant };
 export interface LocalGrant {
   id: Id;
   planHash: Hash;
@@ -350,7 +403,10 @@ export interface JournalRecord {
   at: number;
 }
 export interface CliSessionManager {
-  open(input: OpenSession, credential: CredentialHandle): Promise<SessionSnapshot>;
+  open(
+    input: OpenSession,
+    credential: CredentialHandle,
+  ): Promise<SessionSnapshot>;
   resume(id: Id, workspace: WorkspaceHandle): Promise<SessionSnapshot>;
   submit(command: SubmitCommand): Promise<Accepted>;
   consume(signal: AbortSignal): AsyncIterable<AgentEvent>;
@@ -363,36 +419,67 @@ export interface CortexClient {
   snapshot(id: Id): Promise<SessionSnapshot>;
   submit(session: Id, command: SubmitCommand): Promise<Accepted>;
   status(session: Id, command: Id): Promise<CommandSnapshot>;
-  events(session: Id, after: number, signal: AbortSignal): AsyncIterable<AgentEvent>;
+  events(
+    session: Id,
+    after: number,
+    signal: AbortSignal,
+  ): AsyncIterable<AgentEvent>;
   claim(session: Id, tool: Id, input: ClaimRequest): Promise<ClaimResponse>;
-  receipt(input: ExecutionReceipt, executionToken?: string): Promise<ReceiptAck>;
+  receipt(
+    input: ExecutionReceipt,
+    executionToken?: string,
+  ): Promise<ReceiptAck>;
   approve(session: Id, decision: ApprovalDecision): Promise<void>;
   cancel(session: Id, input: CancelRequest): Promise<CommandSnapshot>;
   resolve(session: Id, input: Resolution): Promise<CommandSnapshot>;
 }
 export interface AuthenticationProvider {
-  login(profile: string, method: 'device' | 'token' | 'enterprise'): Promise<CredentialHandle>;
+  login(
+    profile: string,
+    method: "device" | "token" | "enterprise",
+  ): Promise<CredentialHandle>;
   principal(handle: CredentialHandle): Promise<Principal>;
-  revoke(handle: CredentialHandle): Promise<{ remoteRevoked: boolean; pending: boolean }>;
+  revoke(
+    handle: CredentialHandle,
+  ): Promise<{ remoteRevoked: boolean; pending: boolean }>;
 }
 export interface WorkspaceManager {
   open(root: string, boundary: Boundary): Promise<WorkspaceHandle>;
-  resolve(workspace: WorkspaceHandle, relative: string, action: 'read' | 'write'): Promise<AuthorizedPath>;
-  lock(workspace: WorkspaceHandle, executor: Id): Promise<{ release(): Promise<void> }>;
+  resolve(
+    workspace: WorkspaceHandle,
+    relative: string,
+    action: "read" | "write",
+  ): Promise<AuthorizedPath>;
+  lock(
+    workspace: WorkspaceHandle,
+    executor: Id,
+  ): Promise<{ release(): Promise<void> }>;
   verify(workspace: WorkspaceHandle, paths: AuthorizedPath[]): Promise<void>;
 }
 export interface LocalToolRegistry {
   descriptors(): ToolDescriptor[];
   plan(request: ToolRequest, workspace: WorkspaceHandle): Promise<EffectPlan>;
-  execute(request: ToolRequest, grant: LocalGrant, signal: AbortSignal): Promise<ExecutionReceipt>;
+  execute(
+    request: ToolRequest,
+    grant: LocalGrant,
+    signal: AbortSignal,
+  ): Promise<ExecutionReceipt>;
 }
 export interface PermissionEngine {
   evaluate(plan: EffectPlan, mode: Mode): Promise<Decision>;
-  approve(request: ApprovalRequest, plan: EffectPlan, decision: 'allow-once' | 'deny'): Promise<Decision>;
+  approve(
+    request: ApprovalRequest,
+    plan: EffectPlan,
+    decision: "allow-once" | "deny",
+  ): Promise<Decision>;
   validate(grant: LocalGrant, plan: EffectPlan): Promise<void>;
 }
 export interface ExecutionSupervisor {
-  run(plan: EffectPlan, grant: LocalGrant, signal: AbortSignal): Promise<ExecutionReceipt>;
+  run(
+    plan: EffectPlan,
+    grant: LocalGrant,
+    signal: AbortSignal,
+  ): Promise<ExecutionReceipt>;
   cancel(command: Id): Promise<{ terminated: boolean; effectsKnown: boolean }>;
   reconcile(command: Id): Promise<ExecutionReceipt | null>;
 }
@@ -401,13 +488,25 @@ export interface PatchManager {
   apply(plan: PatchPlan, grant: LocalGrant): Promise<ExecutionReceipt>;
   checkpoint(plan: PatchPlan): Promise<Checkpoint>;
   restore(checkpoint: Checkpoint, grant: LocalGrant): Promise<ExecutionReceipt>;
-  reconcile(planId: Id): Promise<'applied' | 'not-applied' | 'partial' | 'unknown'>;
+  reconcile(
+    planId: Id,
+  ): Promise<"applied" | "not-applied" | "partial" | "unknown">;
 }
 export interface GitAdapter {
-  inspect(workspace: WorkspaceHandle): Promise<{ head: string | null; dirty: string[] }>;
+  inspect(
+    workspace: WorkspaceHandle,
+  ): Promise<{ head: string | null; dirty: string[] }>;
   diff(workspace: WorkspaceHandle, paths: string[]): Promise<string>;
-  plan(workspace: WorkspaceHandle, action: 'stage' | 'commit' | 'push' | 'restore', args: Json): Promise<EffectPlan>;
-  execute(plan: EffectPlan, grant: LocalGrant, signal: AbortSignal): Promise<ExecutionReceipt>;
+  plan(
+    workspace: WorkspaceHandle,
+    action: "stage" | "commit" | "push" | "restore",
+    args: Json,
+  ): Promise<EffectPlan>;
+  execute(
+    plan: EffectPlan,
+    grant: LocalGrant,
+    signal: AbortSignal,
+  ): Promise<ExecutionReceipt>;
 }
 export interface RecoveryJournal {
   append(record: JournalRecord): Promise<void>; // commits durably before returning
@@ -418,12 +517,22 @@ export interface RecoveryJournal {
   prune(now: number): Promise<{ removed: number; retainedUnresolved: number }>;
 }
 export interface ContextProvider {
-  collect(workspace: WorkspaceHandle, paths: string[], consentId: Id): Promise<ContextChunk[]>;
-  incremental(previous: ContextRef[], chunks: ContextChunk[]): Promise<ContextChunk[]>;
+  collect(
+    workspace: WorkspaceHandle,
+    paths: string[],
+    consentId: Id,
+  ): Promise<ContextChunk[]>;
+  incremental(
+    previous: ContextRef[],
+    chunks: ContextChunk[],
+  ): Promise<ContextChunk[]>;
   fit(chunks: ContextChunk[], availableTokens: number): Promise<ContextChunk[]>;
 }
 export interface ModelCapabilityProvider {
   list(): Promise<ModelCapability[]>;
-  select(preference: string, requirements: { tools: boolean; minContext: number }): Promise<ModelCapability>;
+  select(
+    preference: string,
+    requirements: { tools: boolean; minContext: number },
+  ): Promise<ModelCapability>;
   invalidate(): void;
 }

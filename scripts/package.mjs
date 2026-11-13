@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { execFileSync } from "node:child_process";
 import { createHash, sign, createPrivateKey } from "node:crypto";
+execFileSync(process.execPath, ["scripts/sbom.mjs"]);
 const root = process.cwd(),
   stage = path.join(root, "artifacts", "stage");
 fs.mkdirSync("artifacts", { recursive: true });
@@ -54,6 +55,16 @@ const manifest = {
   sha256: createHash("sha256").update(data).digest("hex"),
   bytes: data.length,
   node: "24",
+  platforms: ["linux", "darwin", "win32"],
+  qualification: "See docs/QUALIFICATION.md; native execution gates apply",
+  evidence: Object.fromEntries(
+    ["sbom.cdx.json", "build-provenance.json"].map((name) => [
+      name,
+      createHash("sha256")
+        .update(fs.readFileSync(path.join("artifacts", name)))
+        .digest("hex"),
+    ]),
+  ),
 };
 fs.writeFileSync(
   "artifacts/manifest.json",

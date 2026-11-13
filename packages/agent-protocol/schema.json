@@ -453,6 +453,15 @@
               "null",
               "number"
             ]
+          },
+          "maxToolCalls": {
+            "type": "number"
+          },
+          "maxOutputTokens": {
+            "type": "number"
+          },
+          "maxContextTokens": {
+            "type": "number"
           }
         },
         "additionalProperties": false,

@@ -4,7 +4,7 @@ Independent TypeScript/Node 24 terminal client for CORTEX Agent Protocol 1.0. Th
 
 ## Build and install
 
-Requires Node 24 (security-patched release), npm and Git. Linux/WSL local tools also require Python 3, bubblewrap and util-linux `prlimit`. macOS/Windows conversational transport builds are provided; native execution and platform qualification remain release gates.
+Requires Node 24 (security-patched release), npm and Git. Linux/WSL local tools also require Python 3, bubblewrap and util-linux `prlimit`. macOS includes descriptor-relative file tools and a Seatbelt process adapter. Windows includes Win32 protected file tools and DPAPI; arbitrary native Windows processes and Git mutations fail closed (use WSL2). See [qualification](docs/QUALIFICATION.md) for native acceptance gates.
 
 ```bash
 npm ci --ignore-scripts
@@ -55,8 +55,8 @@ Read-only never executes arbitrary processes. Workspace-write allows checked pat
 
 Project config `.sarion/project.json` accepts only `version` and context `exclude` patterns. `sarion project init --remote-project PROJECT_ID` stores the binding in the private endpoint profile, outside the repository; `--remote-project` can select it explicitly per invocation. Repository content cannot select a remote project, endpoint, credentials or policy. Repeated `--exclude PATTERN` flags further reduce context; `**/` matches root and nested paths. `.gitignore`, sensitive files and symlinks are excluded. Only selected files and authorized tool results reach the endpoint. `AGENTS.md`/`SARION.md` are untrusted project guidance, never permission grants. `ask --stdin` explicitly opts in to piped content. `--format json` gives one final object; `ndjson` emits protocol events. Diagnostics/approvals go to stderr.
 
-Unknown effects are quarantined. Do not delete a journal or reissue a command to bypass recovery. Receipt upload may repeat after ACK loss; execution may not. A process timeout/kill is not proof of rollback. Checkpoint restore is a new checked patch and refuses conflicting user edits. Remote failure, incompatible protocol or sovereign endpoint never triggers cloud/provider fallback. Zero-egress profiles are refused until separately qualified.
+Unknown effects are quarantined. Do not delete a journal or reissue a command to bypass recovery. Receipt upload may repeat after ACK loss; execution may not. A process timeout/kill is not proof of rollback. Checkpoint restore is a new checked patch and refuses conflicting user edits. Remote failure, incompatible protocol or sovereign endpoint never triggers cloud/provider fallback. Private zero-egress profiles pin requests to explicitly configured private IPs without DNS or public fallback. Deployment certification additionally requires host/backend firewall and real private-service evidence; see [qualification](docs/QUALIFICATION.md).
 
 ## Verification and status
 
-`npm test` uses deterministic fixtures only. Real SARION inference and native macOS/Windows acceptance require separately authorized environments/budget; fixture model responses do not establish live acceptance. See companion SARION `docs/cli-v2/` reports for exact results and release requirements.
+`npm test` uses deterministic protocol fixtures and real native file/process checks. [Distribution](docs/DISTRIBUTION.md) covers SBOM, provenance, signing, upgrades and uninstallation. Real SARION inference requires a provisioned isolated service and owner login; native macOS/Windows qualification is exercised through the prepared CI workflow; fixture model responses do not establish live acceptance. See companion SARION `docs/cli-v2/` reports for exact results and release requirements.
