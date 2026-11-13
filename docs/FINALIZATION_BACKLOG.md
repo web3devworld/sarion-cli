@@ -8,7 +8,7 @@ One campaign; no production deployment, migration or public package publication.
 - [x] Add explicit model-step, tool-call, output/context and wall-time controls; serial execution.
 - [x] Implement macOS sandbox and Windows protected file helper; retain Windows process denial.
 - [x] Prepare native CI, SBOM, provenance, dependency audit and signable packages.
-- [x] Consolidated acceptance and affected-test repairs; native Linux/macOS/Windows CI passed at 81fd5b0.
-- [ ] Real SARION owner login and genuine inference acceptance: isolated endpoint not yet supplied.
+- [x] Consolidated acceptance and affected-test repairs; native Linux/macOS/Windows CI passed at 93e0c65.
+- [x] Genuine SARION device authentication and inference: isolated Worker/D1 provisioned, real inspection/test repair/two-file coding, memory, continuity, denial and recovery passed; staging retired.
 - [ ] Real enterprise deployment qualification and operator signing: infrastructure/keys not supplied.
 - [x] Accurate reports and reviewed implementation commits; delivery heads and PRs recorded in companion final-readiness report.

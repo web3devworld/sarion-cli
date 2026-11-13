@@ -13,3 +13,20 @@ Consolidated validation completed on Ubuntu 26.04.1 / Node 24.21.0: client typec
 Defects fixed during the single campaign: fixture schema parity; route scanner support without weakening guard checks; gateway streaming for the CLI surface; crash/ACK claim quarantine; Git helper and clean-filter isolation; workspace mutation recovery barrier; private remote-project bindings; context references keyed by path as well as hash; batched bounded local search; active-task privacy/deletion fences; local/remote retention and account erasure cascades. All backend source remains default-off and migration held.
 
 Release blockers: deployed nonproduction adapter/scoped credentials and authorized live inference budget; real account/tenant/revocation acceptance; native OS credential and runtime qualification; signing identity and controlled release review. No deployment, production migration, secrets change, package publication or successful paid inference occurred. See companion five implementation reports for evidence and exact limitations.
+
+
+## Final live acceptance — 2026-11-13
+
+Real SARION device login, encrypted persistence, memory/streaming/restart continuity,
+repository inspection, failing-test diagnosis/repair, coordinated two-file coding,
+follow-up correction and durable policy-denial/recovery passed against an isolated
+Worker/D1. Repairs preserve assistant tool-call frames, normalize root listings,
+quarantine blank finals, bound schema correction, durably report known denials,
+clarify process arguments and include protected untracked source in diffs. The
+backend also prevents scoped tokens bypassing authorization through legacy routes.
+The companion backend reports contain sanitized transcripts, IDs, receipts and
+fixture diffs. Actual provider usage: 52 successful calls, 70,565 input / 6,701 output
+tokens, USD 0.029725 SARION trace-priced cost. No production credentials or resources
+were used. Native CI 43412788461 passed all three OS jobs at implementation 93e0c65.
+The staging ingress/provider binding is retired, device tokens revoked, and private
+credential/evidence retention encrypted. Release signing/activation remain separate.

@@ -2,7 +2,7 @@
 
 Candidate 2.0.0-preview.2 uses CORTEX Agent Protocol 1.0. The companion SARION
 `docs/cli-v2/SARION_CLI_V2_FINAL_READINESS.md` is the consolidated acceptance record.
-Do not interpret a package build or protocol simulator as real inference. Native CI [run 43404927918](https://github.com/web3devworld/sarion-cli/actions/runs/43404927918) passed on Linux, macOS 15 Intel and Windows 2022 at implementation commit `81fd5b0`. This includes Keychain/DPAPI, journal recovery and signed offline installation using fixture keys; Linux Secret Service needs a separately provisioned user session.
+Do not interpret a package build or protocol simulator as real inference. Native CI [run 43412788461](https://github.com/web3devworld/sarion-cli/actions/runs/43412788461) passed on Linux, macOS 15 Intel and Windows 2022 at implementation commit `93e0c65df9065360d987aedf945eaf1bd4f7c692`. This includes Keychain/DPAPI, journal recovery and signed offline installation using fixture keys; Linux Secret Service needs a separately provisioned user session.
 
 | Runtime | Implemented scope | Native evidence required |
 |---|---|---|
@@ -55,3 +55,20 @@ step, and a 20,000 estimated-token context ceiling. Flags can reduce these bound
 managed policy further restricts step/time limits. Monetary ceilings are refused
 because authoritative monetary settlement is unavailable. A timeout or signal
 is an uncertain result, never proof that effects were rolled back.
+
+
+Genuine Preview.2 cloud acceptance passed on 2026-11-13 in a dedicated SARION
+Worker/D1 with real device credentials and Cloudflare gpt-oss-120b inference.
+Streaming, memory, restart continuity, failing-test repair, coordinated two-file
+coding, same-session correction, exact policy denial and durable recovery passed.
+The companion backend final-readiness and real-model reports retain failed
+attempts and repairs; staging was then retired and device credentials revoked.
+No production activation or package publication occurred. This is a small real
+coding acceptance fixture, not a general competence or adversarial benchmark.
+
+The final unsigned package SHA-256 is
+`fe9fa5c1b5cf9740193567a6230c55ce59ffa97df261573aca7e0be2478023dd`
+(831,078 bytes), built from implementation 93e0c65. Its SBOM/provenance and exact
+manifest are recorded with the companion live evidence. Operator signing remains
+required for controlled distribution. Enterprise infrastructure and Linux Secret
+Service session qualification remain as described above.
