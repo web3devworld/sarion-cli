@@ -128,3 +128,108 @@ test('native credential broker lifecycle on explicitly opted-in ephemeral runner
     fs.rmSync(tmp, { recursive: true, force: true });
   }
 });
+
+test('native encrypted SQLite journal survives restart and refuses schema downgrade', async () => {
+  const { RecoveryJournal } = await import('../packages/local-runtime/journal.ts');
+  const { randomBytes, randomUUID } = await import('node:crypto');
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'sarion-journal-native-'));
+  const dir = path.join(tmp, 'journal'),
+    key = randomBytes(32),
+    command = randomUUID();
+  try {
+    let j = new RecoveryJournal(dir, key);
+    await j.append({
+      id: randomUUID(),
+      commandId: command,
+      state: 'executing',
+      body: { secret: 'encrypted fixture content' },
+      at: Date.now(),
+    });
+    j.close();
+    j = new RecoveryJournal(dir, key);
+    assert.equal(j.record(command).state, 'executing');
+    assert.equal(j.record(command).body.secret, 'encrypted fixture content');
+    j.db.exec('PRAGMA user_version=2');
+    j.close();
+    assert.throws(() => new RecoveryJournal(dir, key), /refusing downgrade/);
+  } finally {
+    fs.rmSync(tmp, { recursive: true, force: true });
+  }
+});
+
+test('native junction/symlink, hardlink and Windows alternate stream restrictions', async () => {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'sarion-path-native-'));
+  const root = path.join(tmp, 'repo'),
+    outside = path.join(tmp, 'outside');
+  fs.mkdirSync(root);
+  fs.mkdirSync(outside);
+  fs.writeFileSync(path.join(outside, 'secret.txt'), 'private fixture');
+  const wm = new WorkspaceManager(),
+    w = await wm.open(root, { id: 'paths', kind: 'sovereign', issuer: 'paths', audience: 'paths' });
+  try {
+    fs.symlinkSync(outside, path.join(root, 'jump'), process.platform === 'win32' ? 'junction' : 'dir');
+    assert.throws(() => wm.read(w, 'jump/secret.txt'));
+    fs.writeFileSync(path.join(root, 'source.txt'), 'source');
+    fs.linkSync(path.join(root, 'source.txt'), path.join(root, 'alias.txt'));
+    assert.throws(() => wm.call(w, { op: 'apply', path: 'alias.txt', beforeHash: null, after: 'refused' }));
+    for (const p of ['x:stream', '../secret.txt', '/absolute', '.ENV']) {
+      if (p === '.ENV' && process.platform !== 'win32') continue;
+      assert.throws(() => wm.read(w, p));
+    }
+  } finally {
+    fs.rmSync(tmp, { recursive: true, force: true });
+  }
+});
+
+test('native supervisor records known exits and quarantines timed termination', async () => {
+  if (process.platform === 'win32') return; // Native processes are deliberately unavailable on Windows.
+  const { RecoveryJournal } = await import('../packages/local-runtime/journal.ts');
+  const { PermissionEngine } = await import('../packages/local-runtime/permissions.ts');
+  const { hash, id } = await import('../packages/agent-protocol/validation.ts');
+  const { randomBytes } = await import('node:crypto');
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'sarion-supervisor-native-'));
+  const root = path.join(tmp, 'repo');
+  fs.mkdirSync(root);
+  const wm = new WorkspaceManager(),
+    w = await wm.open(root, { id: 'native', kind: 'sovereign', issuer: 'native', audience: 'native' });
+  const journal = new RecoveryJournal(path.join(tmp, 'state'), randomBytes(32)),
+    permissions = new PermissionEngine(w);
+  const supervisor = new ExecutionSupervisor(w, journal, permissions);
+  try {
+    for (const [code, timeout, state] of [
+      ['console.log("known exit")', 5000, 'succeeded'],
+      ['setInterval(()=>{},100)', 100, 'uncertain'],
+    ]) {
+      const plan = {
+        commandId: id(),
+        workspaceId: w.id,
+        hash: '',
+        tool: 'process.run',
+        args: { cwd: '.' },
+        actions: ['execute'],
+        paths: [],
+        networkOrigins: [],
+        timeoutMs: timeout,
+        maxOutputBytes: 10000,
+        executable: fs.realpathSync(process.execPath),
+        argv: ['-e', code],
+      };
+      plan.hash = hash({ ...plan, hash: '' });
+      const decision = await permissions.evaluate(plan, 'approval-required');
+      assert.equal(decision.kind, 'prompt');
+      const allowed = await permissions.approve(decision.request, plan, 'allow-once');
+      await journal.append({
+        id: id(),
+        commandId: plan.commandId,
+        state: 'claimed',
+        body: { fixture: true },
+        at: Date.now(),
+      });
+      const receipt = await supervisor.run(plan, allowed.grant, new AbortController().signal);
+      assert.equal(receipt.state, state, JSON.stringify(receipt));
+    }
+  } finally {
+    journal.close();
+    fs.rmSync(tmp, { recursive: true, force: true });
+  }
+});

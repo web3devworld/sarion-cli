@@ -21,16 +21,23 @@ export class RecoveryJournal implements P.RecoveryJournal {
       );
     }
     this.db = new DatabaseSync(f);
-    if (process.platform !== 'win32') fs.chmodSync(f, 0o600);
-    this.db.exec('PRAGMA journal_mode=WAL; PRAGMA synchronous=FULL; PRAGMA foreign_keys=ON; PRAGMA busy_timeout=5000;');
-    const version = this.db.prepare('PRAGMA user_version').get() as any;
-    assert(version.user_version <= 1, 'Journal schema newer than client; refusing downgrade');
-    this.db
-      .exec(`CREATE TABLE IF NOT EXISTS records(id TEXT PRIMARY KEY, command_id TEXT NOT NULL UNIQUE,state TEXT NOT NULL,body TEXT NOT NULL,at INTEGER NOT NULL);
+    try {
+      const version = this.db.prepare('PRAGMA user_version').get() as any;
+      assert(version.user_version <= 1, 'Journal schema newer than client; refusing downgrade');
+      if (process.platform !== 'win32') fs.chmodSync(f, 0o600);
+      this.db.exec(
+        'PRAGMA journal_mode=WAL; PRAGMA synchronous=FULL; PRAGMA foreign_keys=ON; PRAGMA busy_timeout=5000;',
+      );
+      this.db
+        .exec(`CREATE TABLE IF NOT EXISTS records(id TEXT PRIMARY KEY, command_id TEXT NOT NULL UNIQUE,state TEXT NOT NULL,body TEXT NOT NULL,at INTEGER NOT NULL);
  CREATE TABLE IF NOT EXISTS receipts(command_id TEXT PRIMARY KEY, hash TEXT NOT NULL, body TEXT NOT NULL, acked INTEGER NOT NULL DEFAULT 0);
  CREATE TABLE IF NOT EXISTS kv(key TEXT PRIMARY KEY,body TEXT NOT NULL);
  CREATE TABLE IF NOT EXISTS audit(seq INTEGER PRIMARY KEY AUTOINCREMENT,command_id TEXT NOT NULL,state TEXT NOT NULL,at INTEGER NOT NULL);
  PRAGMA user_version=1;`);
+    } catch (e) {
+      this.db.close();
+      throw e;
+    }
   }
   private seal(key: string, value: unknown): string {
     const iv = randomBytes(12),
@@ -50,7 +57,12 @@ export class RecoveryJournal implements P.RecoveryJournal {
       d.setAuthTag(Buffer.from(v.tag, 'hex'));
       return JSON.parse(Buffer.concat([d.update(Buffer.from(v.data, 'base64')), d.final()]).toString());
     } catch {
-      throw new Failure('JOURNAL_UNREADABLE', 'Recovery key or journal is invalid; execution disabled', 5, true);
+      throw new Failure(
+        'JOURNAL_UNREADABLE',
+        'Recovery key or journal is invalid; execution disabled',
+        5,
+        true,
+      );
     }
   }
   put(key: string, value: unknown): void {
@@ -63,7 +75,9 @@ export class RecoveryJournal implements P.RecoveryJournal {
     return row ? this.unseal<T>(key, row.body) : undefined;
   }
   keys(prefix: string): string[] {
-    return (this.db.prepare('SELECT key FROM kv WHERE key LIKE ?').all(prefix + '%') as any[]).map((r) => r.key);
+    return (this.db.prepare('SELECT key FROM kv WHERE key LIKE ?').all(prefix + '%') as any[]).map(
+      (r) => r.key,
+    );
   }
   async append(r: P.JournalRecord): Promise<void> {
     this.db
@@ -156,7 +170,8 @@ export class RecoveryJournal implements P.RecoveryJournal {
     }
     for (const key of this.keys('checkpoint:')) {
       const cp = this.get<P.Checkpoint & { createdAt?: number }>(key)!;
-      if ((cp.createdAt ?? now) > now - 30 * 86400000 || pending.some((r) => r.commandId === cp.commandId)) continue;
+      if ((cp.createdAt ?? now) > now - 30 * 86400000 || pending.some((r) => r.commandId === cp.commandId))
+        continue;
       const receipt = await this.receipt(cp.commandId);
       if (receipt?.state === 'uncertain' && !this.get('disposition:' + receipt.parentCommandId)) continue;
       for (const prefix of ['checkpoint:', 'patch:', 'patch-progress:', 'patch-uncertain:'])

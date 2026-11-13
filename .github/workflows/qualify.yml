@@ -35,6 +35,7 @@ jobs:
       - run: npm run build
       - run: node --experimental-transform-types --test tests/client.test.mjs tests/network.test.mjs tests/native.test.mjs
       - run: npm run pack:release
+      - run: node scripts/verify-artifact.mjs
       - run: node scripts/sbom.mjs
       - run: npm audit --omit=dev --audit-level=high
 

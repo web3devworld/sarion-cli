@@ -35,7 +35,7 @@ try {
     env: { ...process.env, SARION_RELEASE_PUBLIC_KEY: publicFile },
     stdio: "pipe",
   });
-  const launcher = path.join(prefix, "bin", "sarion");
+  const launcher = process.platform === "win32" ? path.join(prefix, "node_modules", "@volta", "sarion-cli", "bin", "sarion.mjs") : path.join(prefix, "bin", "sarion");
   assert.equal(
     execFileSync(process.execPath, [launcher, "--version"], {
       encoding: "utf8",
