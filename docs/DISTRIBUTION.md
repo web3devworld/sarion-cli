@@ -22,10 +22,14 @@ same source/toolchain and compare package SHA-256. Unsigned provenance is eviden
 not an authenticated SLSA attestation. Native qualification is separate from
 reproducibility. No public registry publication is part of this workflow.
 
-Operator signing (Ed25519, key supplied outside the repository):
+Operator signing uses the separately reviewed [operator procedure](OPERATOR_SIGNING.md).
+Packaging always produces an unsigned candidate. The old SARION_SIGNING_KEY_FILE
+packaging shortcut is refused; keys and passphrases do not enter the build.
+After source/hash review, sign with the owner-controlled Ed25519 key:
 
 ```
-SARION_SIGNING_KEY_FILE=/secure/operator.pem npm run pack:release
+node scripts/sign-release.mjs /offline/bundle /secure/operator.pem /trusted/operator-public.pem SPKI_SHA256 REVIEWED_SOURCE_SHA
+node scripts/verify-release.mjs /offline/bundle /trusted/operator-public.pem SPKI_SHA256
 SARION_RELEASE_PUBLIC_KEY=/trusted/operator-public.pem node scripts/install.mjs /offline/bundle /user/prefix
 ```
 

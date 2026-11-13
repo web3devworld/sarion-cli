@@ -15,7 +15,7 @@ sarion --version
 sarion --help
 ```
 
-Add the selected prefix's bin directory to PATH. PowerShell: `npm install --global --ignore-scripts --prefix "$env:LOCALAPPDATA\Sarion" .`; use its `sarion.cmd` launcher. No administrator privilege required. `npm run pack:release` creates a tarball/checksum manifest; `SARION_SIGNING_KEY_FILE` adds an Ed25519 signature. Distributable acceptance requires an operator signing key; no private key is committed. `scripts/install.mjs` verifies a signed offline bundle against `SARION_RELEASE_PUBLIC_KEY` before installing. Upgrades are explicit installs of a verified version; no telemetry or automatic update check.
+Add the selected prefix's bin directory to PATH. PowerShell: `npm install --global --ignore-scripts --prefix "$env:LOCALAPPDATA\Sarion" .`; use its `sarion.cmd` launcher. No administrator privilege required. `npm run pack:release` creates an unsigned tarball/checksum manifest. Use the separately reviewed `scripts/sign-release.mjs` operator procedure with an owner-controlled Ed25519 key, trusted fingerprint and reviewed source SHA; the former `SARION_SIGNING_KEY_FILE` build shortcut is refused. Distributable acceptance requires an operator signing key; no private key is committed. `scripts/install.mjs` verifies a signed offline bundle against `SARION_RELEASE_PUBLIC_KEY` before installing. Upgrades are explicit installs of a verified version; no telemetry or automatic update check.
 
 ## First connection
 

@@ -1,7 +1,9 @@
 import fs from "node:fs";
 import path from "node:path";
 import { execFileSync } from "node:child_process";
-import { createHash, sign, createPrivateKey } from "node:crypto";
+import { createHash } from "node:crypto";
+if (process.env.SARION_SIGNING_KEY_FILE)
+  throw Error('Packaging is unsigned; use scripts/sign-release.mjs with the reviewed source and trusted key fingerprint');
 execFileSync(process.execPath, ["scripts/sbom.mjs"]);
 const root = process.cwd(),
   stage = path.join(root, "artifacts", "stage");
@@ -71,22 +73,4 @@ fs.writeFileSync(
   JSON.stringify(manifest, null, 2) + "\n",
 );
 fs.rmSync("artifacts/manifest.sig", { force: true });
-if (process.env.SARION_SIGNING_KEY_FILE) {
-  const key = createPrivateKey(
-    fs.readFileSync(process.env.SARION_SIGNING_KEY_FILE),
-  );
-  fs.writeFileSync(
-    "artifacts/manifest.sig",
-    sign(null, fs.readFileSync("artifacts/manifest.json"), key).toString(
-      "base64",
-    ),
-  );
-}
-console.log(
-  file +
-    " (signature " +
-    (process.env.SARION_SIGNING_KEY_FILE
-      ? "created"
-      : "NOT CREATED — required for release") +
-    ")",
-);
+console.log(file + ' (UNSIGNED — operator signing required for release)');
