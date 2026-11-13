@@ -93,8 +93,15 @@ def main():
             f.seek(0);msvcrt.locking(f.fileno(),msvcrt.LK_NBLCK,1)
             print('locked',flush=True);sys.stdin.read()
         return
-    r=json.load(sys.stdin);root=os.path.abspath(r['root']);st=os.stat(root)
-    if r['identity']!=str(st.st_dev)+':'+str(st.st_ino):raise ValueError('Workspace identity changed')
+    r=json.load(sys.stdin);root=os.path.abspath(r['root'])
+    with parents(root,'identity-probe'):
+        dispatch(r,root)
+def dispatch(r,root):
+    st=os.stat(root)
+    identity=str(st.st_dev)+':'+str(st.st_ino)
+    if r['op']=='identity':
+        print(json.dumps({'ok':True,'result':identity}));return
+    if r['identity']!=identity:raise ValueError('Workspace identity changed')
     op=r['op']
     if op=='read':out=read(root,r['path'])
     elif op=='list':out=walk(root)
