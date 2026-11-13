@@ -70,11 +70,11 @@ export function macSandbox(
 (allow process-exec process-fork)
 (allow signal (target same-sandbox))
 (allow process-info* (target same-sandbox))
-(allow file-map-executable (subpath "/usr") (subpath "/bin") (subpath "/System/Library") (subpath "/Library/Apple") (subpath "/opt/homebrew") (literal ${q(file)}) (subpath ${q(root)}))
+(allow file-map-executable (subpath "/usr") (subpath "/bin") (subpath "/System/Library") (subpath "/System/Volumes/Preboot/Cryptexes/OS") (subpath "/private/var/db/dyld") (subpath "/Library/Apple") (subpath "/opt/homebrew") (literal ${q(file)}) (subpath ${q(root)}))
 (allow file-read-metadata (path-ancestors ${q(root)}) (path-ancestors ${q(temp)}) (path-ancestors ${q(file)}) (literal "/") (literal "/var") (literal "/tmp") (literal "/etc"))
 (allow system-mac-syscall (require-all (mac-policy-name "Sandbox") (mac-syscall-number 67)))
 (allow sysctl-read)
-(allow file-read* (subpath "/usr") (subpath "/opt/homebrew") (subpath "/bin") (subpath "/sbin") (subpath "/System/Library") (subpath "/Library/Apple") (literal "/dev/null") (literal "/dev/urandom") (literal ${q(file)}) (subpath ${q(root)}) (subpath ${q(temp)}))
+(allow file-read* file-test-existence (subpath "/usr") (subpath "/opt/homebrew") (subpath "/bin") (subpath "/sbin") (subpath "/System/Library") (subpath "/System/Volumes/Preboot/Cryptexes/OS") (subpath "/private/var/db/dyld") (subpath "/Library/Apple") (literal "/dev/null") (literal "/dev/urandom") (literal ${q(file)}) (subpath ${q(root)}) (subpath ${q(temp)}))
 (deny file-read* (regex #"(^|/)([.]env[^/]*|[.]ssh|[.]aws|[.]gnupg|[.]kube|[.]sarion|[.]npmrc|[.]netrc|[.]pypirc|id_rsa[^/]*|id_ed25519[^/]*|cli[.]json|providers[.]json|credentials[.]json|secrets[.]json)(/|$)"))
 (deny file-read* (regex #"[.](pem|key|p12|pfx)$"))
 ${git ? `(allow file-write* (subpath ${q(path.join(root, '.git'))}))` : `(deny file-read* (subpath ${q(path.join(root, '.git'))}))`}

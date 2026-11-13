@@ -96,3 +96,35 @@ test('native containment: workspace writes, host reads and network denied', asyn
     fs.rmSync(tmp, { recursive: true, force: true });
   }
 });
+
+test('native credential broker lifecycle on explicitly opted-in ephemeral runner', async (t) => {
+  if (process.env.SARION_QUALIFY_CREDENTIALS !== '1' || process.platform === 'linux') {
+    t.skip(
+      'Requires explicit ephemeral native credential runner; Linux Secret Service needs its own provisioned session',
+    );
+    return;
+  }
+  const { CredentialStore } = await import('../packages/platform/credentials.ts');
+  const prior = process.env.SARION_V2_HOME;
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'sarion-credential-native-'));
+  process.env.SARION_V2_HOME = tmp;
+  const key = 'native-qualification@https://credential-fixture.invalid';
+  try {
+    const store = new CredentialStore();
+    store.put(key, 'nonsecret-native-fixture-credential');
+    assert.equal(new CredentialStore().token(key), 'nonsecret-native-fixture-credential');
+    assert.equal(store.key(key).length, 32);
+    store.remove(key);
+    assert.throws(() => store.token(key), /login first/);
+    if (process.platform === 'win32')
+      assert.ok(
+        !fs
+          .readFileSync(path.join(tmp, 'vault.json'), 'utf8')
+          .includes('nonsecret-native-fixture-credential'),
+      );
+  } finally {
+    if (prior === undefined) delete process.env.SARION_V2_HOME;
+    else process.env.SARION_V2_HOME = prior;
+    fs.rmSync(tmp, { recursive: true, force: true });
+  }
+});
