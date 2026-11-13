@@ -1,4 +1,6 @@
 import fs from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import { executable } from './process.ts';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { randomBytes, scryptSync, createCipheriv, createDecipheriv } from 'node:crypto';
@@ -85,16 +87,15 @@ export class CredentialStore {
         if (!fs.existsSync(this.file)) return empty();
         const st = fs.lstatSync(this.file);
         assert(st.isFile() && !st.isSymbolicLink(), 'Unsafe DPAPI vault');
-        value = this.command(
-          'powershell.exe',
-          [
-            '-NoProfile',
-            '-NonInteractive',
-            '-Command',
-            `$v=[Console]::In.ReadToEnd(); $s=ConvertTo-SecureString $v; $p=[Runtime.InteropServices.Marshal]::SecureStringToBSTR($s); try {[Runtime.InteropServices.Marshal]::PtrToStringBSTR($p)} finally {[Runtime.InteropServices.Marshal]::ZeroFreeBSTR($p)}`,
-          ],
-          fs.readFileSync(this.file, 'utf8'),
+        const result = JSON.parse(
+          this.command(
+            executable('python3'),
+            [fileURLToPath(new URL('./fs-windows.py', import.meta.url)), 'unprotect'],
+            fs.readFileSync(this.file, 'utf8'),
+          ),
         );
+        assert(result.ok && typeof result.result === 'string', 'DPAPI decryption failed');
+        value = result.result;
       } else throw new Failure('KEYCHAIN_UNAVAILABLE', 'Unsupported OS credential store', 3);
       return value ? JSON.parse(Buffer.from(value, 'base64').toString()) : empty();
     } catch (e) {
@@ -138,16 +139,15 @@ export class CredentialStore {
         `add-generic-password -U -s sarion-v2 -a credentials -w ${encoded}\n`,
       );
     else if (this.platform === 'win32') {
-      const encrypted = this.command(
-        'powershell.exe',
-        [
-          '-NoProfile',
-          '-NonInteractive',
-          '-Command',
-          '[Console]::In.ReadToEnd() | ConvertTo-SecureString -AsPlainText -Force | ConvertFrom-SecureString',
-        ],
-        encoded,
+      const protectedValue = JSON.parse(
+        this.command(
+          executable('python3'),
+          [fileURLToPath(new URL('./fs-windows.py', import.meta.url)), 'protect'],
+          encoded,
+        ),
       );
+      assert(protectedValue.ok && typeof protectedValue.result === 'string', 'DPAPI encryption failed');
+      const encrypted = protectedValue.result;
       atomic(this.file, encrypted);
     } else
       throw new Failure(

@@ -3,7 +3,7 @@
 points and alternate streams. No shell, network, or arbitrary process support.
 Requires native qualification; no weaker fallback on an API failure.
 """
-import ctypes, ctypes.wintypes as W, os, sys, json, stat, hashlib, msvcrt
+import ctypes, ctypes.wintypes as W, os, sys, json, stat, hashlib, msvcrt, base64
 from contextlib import contextmanager
 K=ctypes.WinDLL('kernel32',use_last_error=True)
 K.CreateFileW.argtypes=[W.LPCWSTR,W.DWORD,W.DWORD,W.LPVOID,W.DWORD,W.DWORD,W.HANDLE]
@@ -86,7 +86,27 @@ def apply(root,p,before,after):
             finally:
                 if os.path.exists(tmp):os.unlink(tmp)
         return {'path':p,'beforeHash':before,'afterHash':None if after is None else hashlib.sha256(after.encode()).hexdigest(),'status':'verified'}
+class BLOB(ctypes.Structure):
+    _fields_=[('size',W.DWORD),('data',ctypes.POINTER(ctypes.c_ubyte))]
+def dpapi(mode):
+    source=sys.stdin.buffer.read(1048577)
+    if len(source)>1048576:raise ValueError('Credential size limit')
+    data=source if mode=='protect' else base64.b64decode(source,validate=True)
+    buffer=(ctypes.c_ubyte*len(data)).from_buffer_copy(data)
+    value=BLOB(len(data),buffer);out=BLOB()
+    crypt=ctypes.WinDLL('crypt32',use_last_error=True)
+    fn=crypt.CryptProtectData if mode=='protect' else crypt.CryptUnprotectData
+    fn.argtypes=[ctypes.POINTER(BLOB),ctypes.c_void_p,ctypes.c_void_p,ctypes.c_void_p,ctypes.c_void_p,W.DWORD,ctypes.POINTER(BLOB)]
+    fn.restype=W.BOOL
+    if not fn(ctypes.byref(value),None,None,None,None,1,ctypes.byref(out)):raise ctypes.WinError(ctypes.get_last_error())
+    try:
+        result=ctypes.string_at(out.data,out.size)
+        print(json.dumps({'ok':True,'result':base64.b64encode(result).decode() if mode=='protect' else result.decode('utf8')}))
+    finally:
+        ctypes.memset(out.data,0,out.size)
+        K.LocalFree.argtypes=[ctypes.c_void_p];K.LocalFree.restype=ctypes.c_void_p;K.LocalFree(out.data)
 def main():
+    if sys.argv[1] in ('protect','unprotect'):dpapi(sys.argv[1]);return
     if sys.argv[1]=='lock':
         with open(sys.argv[2],'a+b') as f:
             if os.fstat(f.fileno()).st_size==0:f.write(b'0');f.flush()
