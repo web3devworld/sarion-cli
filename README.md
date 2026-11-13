@@ -59,4 +59,4 @@ Unknown effects are quarantined. Do not delete a journal or reissue a command to
 
 ## Verification and status
 
-`npm test` uses deterministic protocol fixtures and real native file/process checks. [Distribution](docs/DISTRIBUTION.md) covers SBOM, provenance, signing, upgrades and uninstallation. Real SARION inference requires a provisioned isolated service and owner login; native macOS/Windows qualification is exercised through the prepared CI workflow; fixture model responses do not establish live acceptance. See companion SARION `docs/cli-v2/` reports for exact results and release requirements.
+`npm test` uses deterministic protocol fixtures and real native file/process checks. [Distribution](docs/DISTRIBUTION.md) covers SBOM, provenance, signing, upgrades and uninstallation. Real SARION inference requires a provisioned isolated service and owner login; native Linux/macOS/Windows checks passed in [CI](https://github.com/web3devworld/sarion-cli/actions/runs/43404927918) for the documented scope; fixture model responses do not establish live acceptance. See companion SARION `docs/cli-v2/` reports for exact results and release requirements.

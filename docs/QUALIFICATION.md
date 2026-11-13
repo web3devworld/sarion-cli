@@ -2,7 +2,7 @@
 
 Candidate 2.0.0-preview.2 uses CORTEX Agent Protocol 1.0. The companion SARION
 `docs/cli-v2/SARION_CLI_V2_FINAL_READINESS.md` is the consolidated acceptance record.
-Do not interpret a package build or protocol simulator as real inference.
+Do not interpret a package build or protocol simulator as real inference. Native CI [run 43404927918](https://github.com/web3devworld/sarion-cli/actions/runs/43404927918) passed on Linux, macOS 15 Intel and Windows 2022 at implementation commit `81fd5b0`. This includes Keychain/DPAPI, journal recovery and signed offline installation using fixture keys; Linux Secret Service needs a separately provisioned user session.
 
 | Runtime | Implemented scope | Native evidence required |
 |---|---|---|
