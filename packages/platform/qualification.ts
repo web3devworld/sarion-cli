@@ -26,7 +26,16 @@ export function sandboxProbe(root: string): {
       ...support,
       verified: p.status === 0,
       reason:
-        p.status === 0 ? support.reason : p.stderr?.toString().slice(0, 2000) || 'Native sandbox failed',
+        p.status === 0
+          ? support.reason
+          : p.stderr?.toString().slice(0, 2000) ||
+            'Native sandbox failed (status=' +
+              p.status +
+              ', signal=' +
+              p.signal +
+              ', error=' +
+              p.error?.message +
+              ')',
     };
   } finally {
     fs.rmSync(temp, { recursive: true, force: true });

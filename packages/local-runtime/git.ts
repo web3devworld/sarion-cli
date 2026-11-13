@@ -29,14 +29,32 @@ export class GitAdapter implements P.GitAdapter {
     private workspace?: P.WorkspaceHandle,
   ) {}
   static read(w: P.WorkspaceHandle, args: string[], input?: string): string {
-    const p = spawnSync(executable('git'), [...gitBase, ...args], {
-      cwd: w.root,
-      env: environment(),
-      input,
-      encoding: 'utf8',
-      maxBuffer: 1024 * 1024,
-      timeout: 10000,
-    });
+    const metadata = path.join(w.root, '.git');
+    const st = fs.lstatSync(metadata);
+    assert(
+      st.isDirectory() && !st.isSymbolicLink(),
+      'Git metadata must be a directory under the workspace; linked worktrees need separate qualification',
+      'POLICY_DENIED',
+      4,
+    );
+    assert(
+      !fs.existsSync(path.join(metadata, 'objects', 'info', 'alternates')),
+      'External Git object stores are denied',
+      'POLICY_DENIED',
+      4,
+    );
+    const p = spawnSync(
+      executable('git'),
+      ['--git-dir=' + metadata, '--work-tree=' + w.root, ...gitBase, ...args],
+      {
+        cwd: w.root,
+        env: environment(),
+        input,
+        encoding: 'utf8',
+        maxBuffer: 1024 * 1024,
+        timeout: 10000,
+      },
+    );
     assert(
       !p.error && p.status === 0,
       'Git inspection failed (not a repository or unsafe configuration)',

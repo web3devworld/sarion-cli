@@ -810,6 +810,7 @@ export async function main(argv = process.argv.slice(2)): Promise<void> {
           ac.abort();
           void session.cancel(rootCommand!).catch(() => {});
         };
+        const wallTimer = setTimeout(interrupt, Number(f.timeout ?? 1200) * 1000);
         process.on('SIGINT', interrupt);
         process.on('SIGTERM', interrupt);
         try {
@@ -827,6 +828,7 @@ export async function main(argv = process.argv.slice(2)): Promise<void> {
           }
           throw e;
         } finally {
+          clearTimeout(wallTimer);
           process.off('SIGINT', interrupt);
           process.off('SIGTERM', interrupt);
         }
