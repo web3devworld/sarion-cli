@@ -336,3 +336,12 @@ test('acknowledged source output expires while unknown receipts remain recoverab
     f.close();
   }
 });
+
+test('Git commit rejects a protected path staged outside the CLI', async () => {
+  const f = await fixture();
+  try {
+    assert.equal(spawnSync('/usr/bin/git',['-C',f.root,'add','-f','--','.env']).status,0);
+    await assert.rejects(f.tools.plan(request(f,'git.commit',{message:'must not include secret'}),f.w), /protected or unapproved/);
+    assert.match(spawnSync('/usr/bin/git',['-C',f.root,'diff','--cached','--name-only'],{encoding:'utf8'}).stdout,/\.env/);
+  } finally { f.close(); }
+});

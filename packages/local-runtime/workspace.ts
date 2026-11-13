@@ -21,6 +21,13 @@ export class WorkspaceManager implements P.WorkspaceManager {
     this.exclusions = paths;
   }
   async open(root: string, boundary: P.Boundary): Promise<P.WorkspaceHandle> {
+    if (process.platform === 'win32')
+      assert(
+        /^[A-Za-z]:[\\/]/.test(root) && !root.startsWith('\\\\'),
+        'Windows workspaces require a local absolute drive path',
+        'POLICY_DENIED',
+        4,
+      );
     root = fs.realpathSync(root);
     const st = fs.lstatSync(root);
     assert(st.isDirectory(), 'Workspace is not a directory');

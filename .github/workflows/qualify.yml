@@ -1,16 +1,9 @@
 name: Native candidate qualification
 on:
   push:
-    branches: ["feat/cli-v2-m1-m4"]
+    branches: ['feat/cli-v2-m1-m4']
     paths:
-      [
-        "apps/**",
-        "packages/**",
-        "scripts/**",
-        "tests/**",
-        "package*.json",
-        ".github/workflows/qualify.yml",
-      ]
+      ['apps/**', 'packages/**', 'scripts/**', 'tests/**', 'package*.json', '.github/workflows/qualify.yml']
   workflow_dispatch:
 permissions:
   contents: read
@@ -22,16 +15,16 @@ jobs:
         os: [ubuntu-22.04, macos-15-intel, windows-2022]
     runs-on: ${{ matrix.os }}
     env:
-      SARION_QUALIFY_CREDENTIALS: "1"
+      SARION_QUALIFY_CREDENTIALS: '1'
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
-          node-version: "24.21.0"
+          node-version: '24.21.0'
           cache: npm
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
         with:
-          python-version: "3.13"
+          python-version: '3.13'
       - if: runner.os == 'Linux'
         run: sudo apt-get update && sudo apt-get install -y bubblewrap
       - name: Pin native filesystem helper
@@ -59,4 +52,4 @@ jobs:
               except Exception: print('Crash report format unavailable')
           PYCODE
 
-          sudo /usr/bin/log show --last 2m --style compact --predicate 'eventMessage CONTAINS "deny" AND process == "kernel"' | tail -30
+          sudo /usr/bin/log show --last 2m --style compact --predicate '(eventMessage CONTAINS "Sandbox: true(" OR eventMessage CONTAINS "Sandbox: node(") AND process == "kernel"' | tail -30

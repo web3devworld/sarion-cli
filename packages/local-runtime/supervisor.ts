@@ -146,6 +146,7 @@ export class ExecutionSupervisor implements P.ExecutionSupervisor {
       let killed = false,
         spawnError = false,
         settled = false;
+      let killTimer: ReturnType<typeof setTimeout> | undefined;
       const child = spawn(temp ? '/usr/bin/sandbox-exec' : '/usr/bin/bwrap', args, {
         cwd: path.join(this.workspace.root, String(p.args.cwd ?? '.')),
         env: {
@@ -157,16 +158,17 @@ export class ExecutionSupervisor implements P.ExecutionSupervisor {
       });
       this.children.set(p.commandId, child);
       const stop = () => {
+        if (killed || settled) return;
         killed = true;
         try {
           process.kill(-child.pid!, 'SIGTERM');
         } catch {}
-        const t = setTimeout(() => {
+        killTimer = setTimeout(() => {
           try {
             process.kill(-child.pid!, 'SIGKILL');
           } catch {}
         }, 3000);
-        t.unref();
+        killTimer.unref();
       };
       this.stops.set(p.commandId, stop);
       const timeout = setTimeout(stop, p.timeoutMs);
@@ -186,13 +188,25 @@ export class ExecutionSupervisor implements P.ExecutionSupervisor {
         if (settled) return;
         settled = true;
         clearTimeout(timeout);
+        clearTimeout(killTimer);
         signal.removeEventListener('abort', stop);
         this.children.delete(p.commandId);
         this.stops.delete(p.commandId);
-        if (temp) fs.rmSync(temp, { recursive: true, force: true });
+        let cleanupFailed = false;
+        if (temp) {
+          try {
+            fs.rmSync(temp, { recursive: true, force: true });
+          } catch {
+            cleanupFailed = true;
+          }
+        }
         const output = redact(Buffer.concat(chunks).toString('utf8'));
         const state: P.ExecutionReceipt['state'] =
-          killed || spawnError || term !== null ? 'uncertain' : exitCode === 0 ? 'succeeded' : 'failed-known';
+          killed || spawnError || cleanupFailed || term !== null
+            ? 'uncertain'
+            : exitCode === 0
+              ? 'succeeded'
+              : 'failed-known';
         const r: Omit<P.ExecutionReceipt, 'receiptHash'> = {
           receiptId: id(),
           sessionId: '',
@@ -216,7 +230,7 @@ export class ExecutionSupervisor implements P.ExecutionSupervisor {
             truncated: bytes > 60000,
           },
           effects: [],
-          result: { exitCode },
+          result: { exitCode, cleanupFailed },
           evidence: [],
         };
         resolve({ ...r, receiptHash: hash(r) });

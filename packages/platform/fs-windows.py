@@ -18,7 +18,7 @@ def parts(p):
     a=p.split('/')
     for x in a:
         low=x.lower()
-        if not x or x in ('.','..') or x.endswith((' ','.')) or low in DENY or low.startswith(('.env','id_rsa','id_ed25519')) or low.endswith(('.pem','.key','.p12','.pfx')) or low.split('.')[0] in {'con','prn','aux','nul','com1','com2','com3','com4','lpt1','lpt2','lpt3'}:raise ValueError('Protected path')
+        if not x or x in ('.','..') or x.endswith((' ','.')) or low in DENY or low.startswith(('.env','id_rsa','id_ed25519')) or low.endswith(('.pem','.key','.p12','.pfx')) or low.split('.')[0] in ({'con','prn','aux','nul'}|{n+str(i) for n in ('com','lpt') for i in range(1,10)}|{n+i for n in ('com','lpt') for i in ('¹','²','³')}):raise ValueError('Protected path')
     return a
 def handle(p,directory=True):
     h=K.CreateFileW(p,0x80000000,3,None,3,0x00200000|0x02000000,None)
@@ -32,6 +32,8 @@ def parents(root,p,create=False):
     a=parts(p);held=[]
     try:
         drive,tail=os.path.splitdrive(root);cur=drive+os.sep
+        K.GetDriveTypeW.argtypes=[W.LPCWSTR];K.GetDriveTypeW.restype=W.UINT
+        if len(drive)!=2 or drive[1]!=':' or K.GetDriveTypeW(cur)!=3:raise ValueError('Only local fixed-drive workspaces are supported')
         held.append(handle(cur))
         for x in tail.strip(os.sep).split(os.sep)+a[:-1]:
             if not x:continue
