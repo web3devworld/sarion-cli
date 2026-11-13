@@ -10,7 +10,7 @@ import { WorkspaceManager } from '../packages/local-runtime/workspace.ts';
 import { RecoveryJournal } from '../packages/local-runtime/journal.ts';
 import { PermissionEngine, ApprovalController } from '../packages/local-runtime/permissions.ts';
 import { LocalToolRegistry } from '../packages/local-runtime/tools.ts';
-import { id, hash, contentHash } from '../packages/agent-protocol/validation.ts';
+import { id, hash, contentHash, Failure } from '../packages/agent-protocol/validation.ts';
 async function setup() {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'sarion-recovery-'));
   fs.chmodSync(tmp, 0o700);
@@ -170,6 +170,40 @@ test('executing marker without receipt blocks recovery replay', async () => {
   } finally {
     f.close();
   }
+});
+
+test('read-only policy denial has a durable receipt and lost ACK never claims or executes', async () => {
+  const f = await setup();
+  try {
+    f.manager.mode = 'read-only';
+    const args = { files: [{ path: 'file.txt', beforeHash: contentHash('fixture data'), after: 'forbidden' }] };
+    const request = { ...f.request, commandId: id(), tool: 'patch.apply', args, argsHash: hash(args) };
+    f.setLostReceipt();
+    await assert.rejects(f.manager.tool(request, new AbortController().signal), /lost receipt/);
+    const receipt = await f.journal.receipt(request.commandId);
+    assert.equal(receipt.state, 'denied');
+    assert.equal(receipt.result.executed, false);
+    assert.deepEqual(receipt.effects, []);
+    assert.equal(receipt.startedAt, null);
+    assert.equal(f.journal.outbox().length, 1);
+    await f.manager.recover(f.sid);
+    await f.manager.tool(request, new AbortController().signal);
+    assert.equal(f.counters.claims, 0);
+    assert.equal(f.counters.executions, 0);
+    assert.equal(f.journal.outbox().length, 0);
+    assert.equal(f.journal.record(request.commandId).state, 'acked');
+  } finally { f.close(); }
+});
+
+test('changed-policy errors remain fail-closed rather than becoming a model continuation', async () => {
+  const f = await setup();
+  try {
+    f.manager.approvals.authorize = async () => { throw new Failure('POLICY_DENIED', 'Policy changed; restart task', 4); };
+    await assert.rejects(f.manager.tool(f.request, new AbortController().signal), /Policy changed/);
+    assert.equal(await f.journal.receipt(f.request.commandId), null);
+    assert.equal(f.counters.claims, 0);
+    assert.equal(f.counters.executions, 0);
+  } finally { f.close(); }
 });
 
 test('unresolved earlier workspace mutation blocks new mutation until explicit disposition', async () => {

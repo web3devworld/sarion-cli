@@ -38,8 +38,9 @@ export const TOOL_SCHEMAS: Record<string, any> = {
     },
   }),
   'process.run': obj({
-    file: text,
-    argv: paths,
+    file: { type: 'string', description: 'Absolute path of the executable to launch.' },
+    argv: { type: 'array', items: text,
+      description: 'Arguments only, excluding the executable. For node tests/x.mjs use file=/path/to/node and argv=["tests/x.mjs"].' },
     cwd: text,
     timeoutMs: { type: 'number' },
     network: { const: 'deny', enum: ['deny'], type: 'string',

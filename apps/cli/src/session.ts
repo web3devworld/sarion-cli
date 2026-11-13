@@ -4,7 +4,7 @@ import { CortexClient } from '../../../packages/cortex-client/index.ts';
 import { RecoveryJournal } from '../../../packages/local-runtime/journal.ts';
 import { WorkspaceManager } from '../../../packages/local-runtime/workspace.ts';
 import { LocalToolRegistry } from '../../../packages/local-runtime/tools.ts';
-import { ApprovalController, type Plan } from '../../../packages/local-runtime/permissions.ts';
+import { ApprovalController, PermissionDenied, type Plan } from '../../../packages/local-runtime/permissions.ts';
 export class CliSessionManager implements P.CliSessionManager {
   snapshot?: P.SessionSnapshot;
   private executorId: string;
@@ -141,6 +141,24 @@ export class CliSessionManager implements P.CliSessionManager {
         request.commandId,
         e instanceof Failure && e.code === 'APPROVAL_REQUIRED' ? 'awaiting_approval' : 'denied',
       );
+      if (e instanceof PermissionDenied) {
+        const body: Omit<P.ExecutionReceipt, 'receiptHash'> = {
+          receiptId: id(), sessionId: session, commandId: request.commandId,
+          parentCommandId: request.parentCommandId, claimId: id(), executorId: this.executorId,
+          argsHash: request.argsHash, workspaceId: this.workspace.id,
+          policyRevision: request.policyRevision, approvalDecisionId: null,
+          state: 'denied', startedAt: null, endedAt: Date.now(), exitCode: null,
+          signal: null, output: null, effects: [],
+          result: { code: e.code, message: e.message, executed: false },
+          evidence: ['policy-denied-before-claim'],
+        };
+        const receipt = { ...body, receiptHash: hash(body) };
+        this.journal.storeReceipt(receipt);
+        const ack = await this.client.receipt(receipt);
+        assert(ack.receiptHash === receipt.receiptHash, 'Receipt ACK mismatch', 'EXECUTION_UNCERTAIN', 5);
+        this.journal.ack(request.commandId, ack.receiptHash);
+        return;
+      }
       throw e;
     }
     this.journal.put('plan:' + grant.id, plan);

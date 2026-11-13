@@ -181,6 +181,10 @@ export class PermissionEngine implements P.PermissionEngine {
     );
   }
 }
+/** A completed deny decision, distinct from malformed/changed policy failures. */
+export class PermissionDenied extends Failure {
+  constructor(reason: string) { super('POLICY_DENIED', reason, 4); }
+}
 export class ApprovalController {
   constructor(
     private engine: PermissionEngine,
@@ -194,7 +198,8 @@ export class ApprovalController {
       const allow = await this.prompt(d.request.summary + '\nAllow once? [y/N] ');
       d = await this.engine.approve(d.request, plan, allow ? 'allow-once' : 'deny');
     }
-    if (d.kind !== 'allow') throw new Failure('POLICY_DENIED', d.kind === 'deny' ? d.reason : 'Approval required', 4);
+    if (d.kind === 'deny') throw new PermissionDenied(d.reason);
+    if (d.kind !== 'allow') throw new Failure('APPROVAL_REQUIRED', 'Approval required', 4);
     return d.grant;
   }
 }
