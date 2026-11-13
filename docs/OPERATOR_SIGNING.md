@@ -12,11 +12,13 @@ store it in the owner's password manager, separately from the encrypted key.
 Do not put a passphrase in a command argument, environment variable or log.
 
 ```sh
+set -euo pipefail
 umask 077
 mkdir -p "$HOME/.config/sarion-release-keys"
 chmod 700 "$HOME/.config/sarion-release-keys"
 # Refuse to overwrite an existing operator identity.
 test ! -e "$HOME/.config/sarion-release-keys/operator-ed25519.pem" || exit 1
+test ! -e "$HOME/.config/sarion-release-keys/operator-ed25519-public.pem" || exit 1
 openssl genpkey -algorithm ED25519 -aes-256-cbc \
   -out "$HOME/.config/sarion-release-keys/operator-ed25519.pem"
 chmod 600 "$HOME/.config/sarion-release-keys/operator-ed25519.pem"
