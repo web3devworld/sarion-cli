@@ -60,11 +60,34 @@ export function macSandbox(
       assert(++entries <= 100000, 'Sandbox filesystem inspection limit reached', 'POLICY_DENIED', 4);
       const r = rel + e.name,
         p = path.join(dir, e.name);
-      if (denies.some((d) => matches(d, r) || matches(d, r + '/'))) denied.push(p);
+      const name = e.name.toLowerCase();
+      if (git && name === '.git') continue;
+      const protectedPath =
+        [
+          '.git',
+          '.sarion',
+          '.ssh',
+          '.aws',
+          '.gnupg',
+          '.kube',
+          '.npmrc',
+          '.netrc',
+          '.pypirc',
+          '.git-credentials',
+          'credentials.json',
+          'secrets.json',
+          'cli.json',
+          'providers.json',
+        ].includes(name) ||
+        name.startsWith('.env') ||
+        name.startsWith('id_rsa') ||
+        name.startsWith('id_ed25519') ||
+        /\.(pem|key|p12|pfx)$/.test(name);
+      if (protectedPath || denies.some((d) => matches(d, r) || matches(d, r + '/'))) denied.push(p);
       else if (e.isDirectory() && e.name !== '.git') visit(p, r + '/');
     }
   };
-  if (denies.length) visit(root);
+  visit(root);
   // No network or general Mach IPC grant. Unsupported host versions fail closed.
   const profile = `(version 1)(deny default)
 (allow process-exec process-fork)

@@ -61,6 +61,7 @@ export class ExecutionSupervisor implements P.ExecutionSupervisor {
     const visit = (dir: string, rel = '') => {
       for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
         assert(++entries <= 100000, 'Sandbox filesystem inspection limit reached', 'POLICY_DENIED', 4);
+        const name = e.name.toLowerCase();
         const r = rel + e.name,
           p = path.join(dir, e.name);
         if (
@@ -78,12 +79,12 @@ export class ExecutionSupervisor implements P.ExecutionSupervisor {
             '.git-credentials',
             'credentials.json',
             'secrets.json',
-          ].includes(e.name) ||
-          e.name.startsWith('.env') ||
-          e.name.startsWith('id_rsa') ||
-          e.name.startsWith('id_ed25519') ||
-          ['cli.json', 'providers.json'].includes(e.name) ||
-          /\.(pem|key|p12|pfx)$/.test(e.name)
+          ].includes(name) ||
+          name.startsWith('.env') ||
+          name.startsWith('id_rsa') ||
+          name.startsWith('id_ed25519') ||
+          ['cli.json', 'providers.json'].includes(name) ||
+          /\.(pem|key|p12|pfx)$/.test(name)
         ) {
           if (git && e.name === '.git' && e.isDirectory()) {
             args.push('--bind', p, '/workspace/' + r);

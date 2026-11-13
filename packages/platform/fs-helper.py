@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 """Descriptor-relative, no-follow regular-file access. No shell or network.
 A pinned root descriptor and each parent descriptor avoid symlink substitution.
-All mutations use CAS and rename into the checked parent. Linux reference helper.
+All mutations use CAS and rename into the checked parent. POSIX descriptor helper (Linux and macOS).
 """
 import os,sys,json,hashlib,stat,fnmatch,fcntl
 DENY={'.git','.sarion','.ssh','.aws','.gnupg','.kube','.npmrc','.netrc','.pypirc','.git-credentials','credentials.json','secrets.json','node_modules','.venv','dist','__pycache__'}
 def parts(p):
     if not isinstance(p,str) or not p or p.startswith(('/','\\')) or '\\' in p or ':' in p or '\x00' in p: raise ValueError('Invalid relative path')
     a=p.split('/')
-    if any(x in ('','..','.') or x in DENY or x.startswith('.env') or x in ('cli.json','providers.json') or x.endswith(('.pem','.key','.p12','.pfx')) or x.startswith('id_rsa') or x.startswith('id_ed25519') for x in a): raise ValueError('Protected path')
+    if any(x in ('','..','.') or x.lower() in DENY or x.lower().startswith('.env') or x.lower() in ('cli.json','providers.json') or x.lower().endswith(('.pem','.key','.p12','.pfx')) or x.lower().startswith('id_rsa') or x.lower().startswith('id_ed25519') for x in a): raise ValueError('Protected path')
     return a
 def parent(root,p,create=False):
     a=parts(p);fd=os.dup(root)
