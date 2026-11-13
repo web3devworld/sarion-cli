@@ -1,0 +1,2630 @@
+{
+  "Capabilities": {
+    "type": "object",
+    "properties": {
+      "protocol": {
+        "type": "string",
+        "const": "1.0"
+      },
+      "boundary": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "cloud",
+              "sovereign"
+            ],
+            "type": "string"
+          },
+          "issuer": {
+            "type": "string"
+          },
+          "audience": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "audience",
+          "id",
+          "issuer",
+          "kind"
+        ]
+      },
+      "principal": {
+        "type": "object",
+        "properties": {
+          "subject": {
+            "type": "string"
+          },
+          "tenantId": {
+            "type": "string"
+          },
+          "accountId": {
+            "type": "string"
+          },
+          "scopes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "accountId",
+          "scopes",
+          "subject",
+          "tenantId"
+        ]
+      },
+      "policyRevision": {
+        "type": "string"
+      },
+      "features": {
+        "type": "object",
+        "properties": {
+          "durableTurns": {
+            "type": "boolean"
+          },
+          "localTools": {
+            "type": "boolean"
+          },
+          "durableReceipts": {
+            "type": "boolean"
+          },
+          "continuations": {
+            "type": "boolean"
+          },
+          "executionClaims": {
+            "type": "boolean"
+          },
+          "deltaReplay": {
+            "type": "boolean"
+          },
+          "memorySearch": {
+            "type": "boolean"
+          },
+          "projectBinding": {
+            "type": "boolean"
+          },
+          "usage": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "continuations",
+          "deltaReplay",
+          "durableReceipts",
+          "durableTurns",
+          "executionClaims",
+          "localTools",
+          "memorySearch",
+          "projectBinding",
+          "usage"
+        ]
+      },
+      "limits": {
+        "$ref": "#/definitions/Limits"
+      },
+      "models": {
+        "type": "array",
+        "items": {
+          "$ref": "#/definitions/ModelCapability"
+        }
+      },
+      "defaultModel": {
+        "type": "string"
+      },
+      "budgetUnit": {
+        "anyOf": [
+          {
+            "type": "object",
+            "properties": {
+              "currency": {
+                "type": "string"
+              },
+              "scale": {
+                "type": "number",
+                "const": 1000000
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "currency",
+              "scale"
+            ]
+          },
+          {
+            "type": "null"
+          }
+        ]
+      }
+    },
+    "additionalProperties": false,
+    "required": [
+      "boundary",
+      "budgetUnit",
+      "defaultModel",
+      "features",
+      "limits",
+      "models",
+      "policyRevision",
+      "principal",
+      "protocol"
+    ],
+    "definitions": {
+      "Limits": {
+        "type": "object",
+        "properties": {
+          "requestBytes": {
+            "type": "number"
+          },
+          "contextBytes": {
+            "type": "number"
+          },
+          "eventBytes": {
+            "type": "number"
+          },
+          "toolArgsBytes": {
+            "type": "number"
+          },
+          "receiptBytes": {
+            "type": "number"
+          },
+          "maxTools": {
+            "type": "number"
+          },
+          "maxOutputTokens": {
+            "type": "number"
+          },
+          "maxSteps": {
+            "type": "number"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "contextBytes",
+          "eventBytes",
+          "maxOutputTokens",
+          "maxSteps",
+          "maxTools",
+          "receiptBytes",
+          "requestBytes",
+          "toolArgsBytes"
+        ]
+      },
+      "ModelCapability": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "eligible": {
+            "type": "boolean"
+          },
+          "text": {
+            "type": "boolean"
+          },
+          "tools": {
+            "type": "boolean"
+          },
+          "streaming": {
+            "type": "boolean"
+          },
+          "contextTokens": {
+            "type": [
+              "null",
+              "number"
+            ]
+          },
+          "maxOutputTokens": {
+            "type": "number"
+          },
+          "efforts": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "selection": {
+            "enum": [
+              "automatic",
+              "preferred",
+              "strict"
+            ],
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "contextTokens",
+          "efforts",
+          "eligible",
+          "id",
+          "label",
+          "maxOutputTokens",
+          "selection",
+          "streaming",
+          "text",
+          "tools"
+        ]
+      }
+    },
+    "$schema": "http://json-schema.org/draft-07/schema#"
+  },
+  "OpenSession": {
+    "type": "object",
+    "properties": {
+      "openId": {
+        "type": "string"
+      },
+      "conversationId": {
+        "type": "string"
+      },
+      "projectId": {
+        "type": "string"
+      },
+      "workspace": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "rootHash": {
+            "type": "string"
+          },
+          "revision": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "revision",
+          "rootHash"
+        ]
+      },
+      "level": {
+        "enum": [
+          "A",
+          "B"
+        ],
+        "type": "string"
+      },
+      "mode": {
+        "$ref": "#/definitions/Mode"
+      },
+      "tools": {
+        "type": "array",
+        "items": {
+          "$ref": "#/definitions/ToolDescriptor"
+        }
+      }
+    },
+    "additionalProperties": false,
+    "required": [
+      "level",
+      "mode",
+      "openId",
+      "tools",
+      "workspace"
+    ],
+    "definitions": {
+      "Mode": {
+        "enum": [
+          "approval-required",
+          "read-only",
+          "trusted-automation",
+          "workspace-write"
+        ],
+        "type": "string"
+      },
+      "ToolDescriptor": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          },
+          "inputSchema": {
+            "$ref": "#/definitions/Json"
+          },
+          "actions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/Action"
+            }
+          },
+          "retryClass": {
+            "enum": [
+              "idempotent-verified",
+              "non-idempotent",
+              "read"
+            ],
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "actions",
+          "inputSchema",
+          "name",
+          "retryClass",
+          "version"
+        ]
+      },
+      "Json": {
+        "anyOf": [
+          {
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/Json"
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/definitions/Json"
+            }
+          },
+          {
+            "type": [
+              "null",
+              "string",
+              "number",
+              "boolean"
+            ]
+          }
+        ]
+      },
+      "Action": {
+        "enum": [
+          "destructive",
+          "execute",
+          "git-history",
+          "network",
+          "production",
+          "read",
+          "write"
+        ],
+        "type": "string"
+      }
+    },
+    "$schema": "http://json-schema.org/draft-07/schema#"
+  },
+  "SubmitCommand": {
+    "type": "object",
+    "properties": {
+      "commandId": {
+        "type": "string"
+      },
+      "expectedRevision": {
+        "type": "number"
+      },
+      "kind": {
+        "enum": [
+          "message",
+          "task"
+        ],
+        "type": "string"
+      },
+      "text": {
+        "type": "string"
+      },
+      "model": {
+        "type": "string"
+      },
+      "effort": {
+        "type": "string"
+      },
+      "context": {
+        "type": "array",
+        "items": {
+          "$ref": "#/definitions/ContextRef"
+        }
+      },
+      "memory": {
+        "type": "array",
+        "items": {
+          "$ref": "#/definitions/MemoryRef"
+        }
+      },
+      "budget": {
+        "type": "object",
+        "properties": {
+          "maxSteps": {
+            "type": "number"
+          },
+          "maxWallMs": {
+            "type": "number"
+          },
+          "maxCostMicro": {
+            "type": [
+              "null",
+              "number"
+            ]
+          },
+          "maxToolCalls": {
+            "type": "number"
+          },
+          "maxOutputTokens": {
+            "type": "number"
+          },
+          "maxContextTokens": {
+            "type": "number"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "maxCostMicro",
+          "maxSteps",
+          "maxWallMs"
+        ]
+      }
+    },
+    "additionalProperties": false,
+    "required": [
+      "budget",
+      "commandId",
+      "context",
+      "expectedRevision",
+      "kind",
+      "memory",
+      "model",
+      "text"
+    ],
+    "definitions": {
+      "ContextRef": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "sha256": {
+            "type": "string"
+          },
+          "revision": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "revision",
+          "sha256"
+        ]
+      },
+      "MemoryRef": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "scope": {
+            "enum": [
+              "conversation",
+              "project",
+              "user"
+            ],
+            "type": "string"
+          },
+          "projectId": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "version": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "projectId",
+          "scope",
+          "version"
+        ]
+      }
+    },
+    "$schema": "http://json-schema.org/draft-07/schema#"
+  },
+  "SessionSnapshot": {
+    "type": "object",
+    "properties": {
+      "sessionId": {
+        "type": "string"
+      },
+      "conversationId": {
+        "type": "string"
+      },
+      "principal": {
+        "type": "object",
+        "properties": {
+          "subject": {
+            "type": "string"
+          },
+          "tenantId": {
+            "type": "string"
+          },
+          "accountId": {
+            "type": "string"
+          },
+          "scopes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "accountId",
+          "scopes",
+          "subject",
+          "tenantId"
+        ]
+      },
+      "boundary": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "cloud",
+              "sovereign"
+            ],
+            "type": "string"
+          },
+          "issuer": {
+            "type": "string"
+          },
+          "audience": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "audience",
+          "id",
+          "issuer",
+          "kind"
+        ]
+      },
+      "revision": {
+        "type": "number"
+      },
+      "conversationSeq": {
+        "type": "number"
+      },
+      "eventCursor": {
+        "type": "number"
+      },
+      "taskId": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "active": {
+        "type": "array",
+        "items": {
+          "$ref": "#/definitions/CommandSnapshot"
+        }
+      },
+      "policyRevision": {
+        "type": "string"
+      }
+    },
+    "additionalProperties": false,
+    "required": [
+      "active",
+      "boundary",
+      "conversationId",
+      "conversationSeq",
+      "eventCursor",
+      "policyRevision",
+      "principal",
+      "revision",
+      "sessionId",
+      "taskId"
+    ],
+    "definitions": {
+      "CommandSnapshot": {
+        "type": "object",
+        "properties": {
+          "sessionId": {
+            "type": "string"
+          },
+          "commandId": {
+            "type": "string"
+          },
+          "parentCommandId": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "state": {
+            "$ref": "#/definitions/State"
+          },
+          "revision": {
+            "type": "number"
+          },
+          "conversationSeq": {
+            "type": "number"
+          },
+          "result": {
+            "$ref": "#/definitions/Json"
+          },
+          "unresolvedTools": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "usage": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/Usage"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "error": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/AgentError"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "execution": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "state": {
+                    "enum": [
+                      "claimed",
+                      "denied",
+                      "ready",
+                      "recorded",
+                      "uncertain"
+                    ],
+                    "type": "string"
+                  },
+                  "claimId": {
+                    "type": [
+                      "null",
+                      "string"
+                    ]
+                  },
+                  "executorId": {
+                    "type": [
+                      "null",
+                      "string"
+                    ]
+                  },
+                  "argsHash": {
+                    "type": "string"
+                  },
+                  "receiptHash": {
+                    "type": [
+                      "null",
+                      "string"
+                    ]
+                  }
+                },
+                "additionalProperties": false,
+                "required": [
+                  "argsHash",
+                  "claimId",
+                  "executorId",
+                  "receiptHash",
+                  "state"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "commandId",
+          "conversationSeq",
+          "error",
+          "execution",
+          "parentCommandId",
+          "result",
+          "revision",
+          "sessionId",
+          "state",
+          "unresolvedTools",
+          "usage"
+        ]
+      },
+      "State": {
+        "enum": [
+          "abandoned",
+          "accepted",
+          "awaiting_approval",
+          "awaiting_tool",
+          "cancel_requested",
+          "cancelled",
+          "committed",
+          "failed",
+          "running",
+          "uncertain"
+        ],
+        "type": "string"
+      },
+      "Json": {
+        "anyOf": [
+          {
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/Json"
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/definitions/Json"
+            }
+          },
+          {
+            "type": [
+              "null",
+              "string",
+              "number",
+              "boolean"
+            ]
+          }
+        ]
+      },
+      "Usage": {
+        "type": "object",
+        "properties": {
+          "inputTokens": {
+            "type": [
+              "null",
+              "number"
+            ]
+          },
+          "outputTokens": {
+            "type": [
+              "null",
+              "number"
+            ]
+          },
+          "estimated": {
+            "type": "boolean"
+          },
+          "percentUsed": {
+            "type": [
+              "null",
+              "number"
+            ]
+          },
+          "dailyPercentUsed": {
+            "type": [
+              "null",
+              "number"
+            ]
+          },
+          "paused": {
+            "type": "boolean"
+          },
+          "cost": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "amountMicro": {
+                    "type": "number"
+                  },
+                  "currency": {
+                    "type": "string"
+                  },
+                  "basis": {
+                    "enum": [
+                      "estimate",
+                      "settled"
+                    ],
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": false,
+                "required": [
+                  "amountMicro",
+                  "basis",
+                  "currency"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "chargedAmountMicro": {
+            "type": [
+              "null",
+              "number"
+            ]
+          },
+          "billingUrl": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "billingUrl",
+          "chargedAmountMicro",
+          "cost",
+          "dailyPercentUsed",
+          "estimated",
+          "inputTokens",
+          "outputTokens",
+          "paused",
+          "percentUsed"
+        ]
+      },
+      "AgentError": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "enum": [
+              "CAPABILITY_MISSING",
+              "COMMAND_CONFLICT",
+              "CONTEXT_TOO_LARGE",
+              "CURSOR_EXPIRED",
+              "EXECUTION_UNCERTAIN",
+              "FORBIDDEN",
+              "INTERNAL",
+              "INVALID_REQUEST",
+              "MODEL_UNAVAILABLE",
+              "POLICY_DENIED",
+              "PROTOCOL_UNSUPPORTED",
+              "QUOTA_EXCEEDED",
+              "RATE_LIMITED",
+              "REQUEST_EXPIRED",
+              "REVISION_CONFLICT",
+              "TENANT_MISMATCH",
+              "TURN_UNRESOLVED",
+              "UNAUTHENTICATED"
+            ],
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "commandId": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "retry": {
+            "enum": [
+              "never",
+              "read-status",
+              "same-id-after-delay"
+            ],
+            "type": "string"
+          },
+          "retryAfterMs": {
+            "type": [
+              "null",
+              "number"
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "code",
+          "commandId",
+          "message",
+          "retry",
+          "retryAfterMs"
+        ]
+      }
+    },
+    "$schema": "http://json-schema.org/draft-07/schema#"
+  },
+  "CommandSnapshot": {
+    "type": "object",
+    "properties": {
+      "sessionId": {
+        "type": "string"
+      },
+      "commandId": {
+        "type": "string"
+      },
+      "parentCommandId": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "state": {
+        "$ref": "#/definitions/State"
+      },
+      "revision": {
+        "type": "number"
+      },
+      "conversationSeq": {
+        "type": "number"
+      },
+      "result": {
+        "$ref": "#/definitions/Json"
+      },
+      "unresolvedTools": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "usage": {
+        "anyOf": [
+          {
+            "$ref": "#/definitions/Usage"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "error": {
+        "anyOf": [
+          {
+            "$ref": "#/definitions/AgentError"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "execution": {
+        "anyOf": [
+          {
+            "type": "object",
+            "properties": {
+              "state": {
+                "enum": [
+                  "claimed",
+                  "denied",
+                  "ready",
+                  "recorded",
+                  "uncertain"
+                ],
+                "type": "string"
+              },
+              "claimId": {
+                "type": [
+                  "null",
+                  "string"
+                ]
+              },
+              "executorId": {
+                "type": [
+                  "null",
+                  "string"
+                ]
+              },
+              "argsHash": {
+                "type": "string"
+              },
+              "receiptHash": {
+                "type": [
+                  "null",
+                  "string"
+                ]
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "argsHash",
+              "claimId",
+              "executorId",
+              "receiptHash",
+              "state"
+            ]
+          },
+          {
+            "type": "null"
+          }
+        ]
+      }
+    },
+    "additionalProperties": false,
+    "required": [
+      "commandId",
+      "conversationSeq",
+      "error",
+      "execution",
+      "parentCommandId",
+      "result",
+      "revision",
+      "sessionId",
+      "state",
+      "unresolvedTools",
+      "usage"
+    ],
+    "definitions": {
+      "State": {
+        "enum": [
+          "abandoned",
+          "accepted",
+          "awaiting_approval",
+          "awaiting_tool",
+          "cancel_requested",
+          "cancelled",
+          "committed",
+          "failed",
+          "running",
+          "uncertain"
+        ],
+        "type": "string"
+      },
+      "Json": {
+        "anyOf": [
+          {
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/Json"
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/definitions/Json"
+            }
+          },
+          {
+            "type": [
+              "null",
+              "string",
+              "number",
+              "boolean"
+            ]
+          }
+        ]
+      },
+      "Usage": {
+        "type": "object",
+        "properties": {
+          "inputTokens": {
+            "type": [
+              "null",
+              "number"
+            ]
+          },
+          "outputTokens": {
+            "type": [
+              "null",
+              "number"
+            ]
+          },
+          "estimated": {
+            "type": "boolean"
+          },
+          "percentUsed": {
+            "type": [
+              "null",
+              "number"
+            ]
+          },
+          "dailyPercentUsed": {
+            "type": [
+              "null",
+              "number"
+            ]
+          },
+          "paused": {
+            "type": "boolean"
+          },
+          "cost": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "amountMicro": {
+                    "type": "number"
+                  },
+                  "currency": {
+                    "type": "string"
+                  },
+                  "basis": {
+                    "enum": [
+                      "estimate",
+                      "settled"
+                    ],
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": false,
+                "required": [
+                  "amountMicro",
+                  "basis",
+                  "currency"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "chargedAmountMicro": {
+            "type": [
+              "null",
+              "number"
+            ]
+          },
+          "billingUrl": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "billingUrl",
+          "chargedAmountMicro",
+          "cost",
+          "dailyPercentUsed",
+          "estimated",
+          "inputTokens",
+          "outputTokens",
+          "paused",
+          "percentUsed"
+        ]
+      },
+      "AgentError": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "enum": [
+              "CAPABILITY_MISSING",
+              "COMMAND_CONFLICT",
+              "CONTEXT_TOO_LARGE",
+              "CURSOR_EXPIRED",
+              "EXECUTION_UNCERTAIN",
+              "FORBIDDEN",
+              "INTERNAL",
+              "INVALID_REQUEST",
+              "MODEL_UNAVAILABLE",
+              "POLICY_DENIED",
+              "PROTOCOL_UNSUPPORTED",
+              "QUOTA_EXCEEDED",
+              "RATE_LIMITED",
+              "REQUEST_EXPIRED",
+              "REVISION_CONFLICT",
+              "TENANT_MISMATCH",
+              "TURN_UNRESOLVED",
+              "UNAUTHENTICATED"
+            ],
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "commandId": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "retry": {
+            "enum": [
+              "never",
+              "read-status",
+              "same-id-after-delay"
+            ],
+            "type": "string"
+          },
+          "retryAfterMs": {
+            "type": [
+              "null",
+              "number"
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "code",
+          "commandId",
+          "message",
+          "retry",
+          "retryAfterMs"
+        ]
+      }
+    },
+    "$schema": "http://json-schema.org/draft-07/schema#"
+  },
+  "AgentEvent": {
+    "anyOf": [
+      {
+        "additionalProperties": false,
+        "type": "object",
+        "properties": {
+          "t": {
+            "type": "string",
+            "const": "ping"
+          },
+          "v": {
+            "type": "string",
+            "const": "1.0"
+          },
+          "sessionId": {
+            "type": "string"
+          },
+          "commandId": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "eventId": {
+            "type": "string"
+          },
+          "cursor": {
+            "type": [
+              "null",
+              "number"
+            ]
+          },
+          "revision": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "commandId",
+          "cursor",
+          "eventId",
+          "revision",
+          "sessionId",
+          "t",
+          "v"
+        ]
+      },
+      {
+        "additionalProperties": false,
+        "type": "object",
+        "properties": {
+          "t": {
+            "type": "string",
+            "const": "phase"
+          },
+          "phase": {
+            "type": "string"
+          },
+          "v": {
+            "type": "string",
+            "const": "1.0"
+          },
+          "sessionId": {
+            "type": "string"
+          },
+          "commandId": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "eventId": {
+            "type": "string"
+          },
+          "cursor": {
+            "type": [
+              "null",
+              "number"
+            ]
+          },
+          "revision": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "commandId",
+          "cursor",
+          "eventId",
+          "phase",
+          "revision",
+          "sessionId",
+          "t",
+          "v"
+        ]
+      },
+      {
+        "additionalProperties": false,
+        "type": "object",
+        "properties": {
+          "t": {
+            "type": "string",
+            "const": "delta"
+          },
+          "text": {
+            "type": "string"
+          },
+          "reset": {
+            "const": true,
+            "type": "boolean"
+          },
+          "provisional": {
+            "type": "boolean",
+            "const": true
+          },
+          "v": {
+            "type": "string",
+            "const": "1.0"
+          },
+          "sessionId": {
+            "type": "string"
+          },
+          "commandId": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "eventId": {
+            "type": "string"
+          },
+          "cursor": {
+            "type": [
+              "null",
+              "number"
+            ]
+          },
+          "revision": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "commandId",
+          "cursor",
+          "eventId",
+          "provisional",
+          "revision",
+          "sessionId",
+          "t",
+          "v"
+        ]
+      },
+      {
+        "additionalProperties": false,
+        "type": "object",
+        "properties": {
+          "t": {
+            "type": "string",
+            "const": "tool_request"
+          },
+          "request": {
+            "$ref": "#/definitions/ToolRequest"
+          },
+          "v": {
+            "type": "string",
+            "const": "1.0"
+          },
+          "sessionId": {
+            "type": "string"
+          },
+          "commandId": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "eventId": {
+            "type": "string"
+          },
+          "cursor": {
+            "type": [
+              "null",
+              "number"
+            ]
+          },
+          "revision": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "commandId",
+          "cursor",
+          "eventId",
+          "request",
+          "revision",
+          "sessionId",
+          "t",
+          "v"
+        ]
+      },
+      {
+        "additionalProperties": false,
+        "type": "object",
+        "properties": {
+          "t": {
+            "type": "string",
+            "const": "approval_request"
+          },
+          "approval": {
+            "$ref": "#/definitions/ApprovalRequest"
+          },
+          "v": {
+            "type": "string",
+            "const": "1.0"
+          },
+          "sessionId": {
+            "type": "string"
+          },
+          "commandId": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "eventId": {
+            "type": "string"
+          },
+          "cursor": {
+            "type": [
+              "null",
+              "number"
+            ]
+          },
+          "revision": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "approval",
+          "commandId",
+          "cursor",
+          "eventId",
+          "revision",
+          "sessionId",
+          "t",
+          "v"
+        ]
+      },
+      {
+        "additionalProperties": false,
+        "type": "object",
+        "properties": {
+          "t": {
+            "type": "string",
+            "const": "receipt_ack"
+          },
+          "ack": {
+            "$ref": "#/definitions/ReceiptAck"
+          },
+          "v": {
+            "type": "string",
+            "const": "1.0"
+          },
+          "sessionId": {
+            "type": "string"
+          },
+          "commandId": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "eventId": {
+            "type": "string"
+          },
+          "cursor": {
+            "type": [
+              "null",
+              "number"
+            ]
+          },
+          "revision": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "ack",
+          "commandId",
+          "cursor",
+          "eventId",
+          "revision",
+          "sessionId",
+          "t",
+          "v"
+        ]
+      },
+      {
+        "additionalProperties": false,
+        "type": "object",
+        "properties": {
+          "t": {
+            "type": "string",
+            "const": "usage"
+          },
+          "usage": {
+            "$ref": "#/definitions/Usage"
+          },
+          "v": {
+            "type": "string",
+            "const": "1.0"
+          },
+          "sessionId": {
+            "type": "string"
+          },
+          "commandId": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "eventId": {
+            "type": "string"
+          },
+          "cursor": {
+            "type": [
+              "null",
+              "number"
+            ]
+          },
+          "revision": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "commandId",
+          "cursor",
+          "eventId",
+          "revision",
+          "sessionId",
+          "t",
+          "usage",
+          "v"
+        ]
+      },
+      {
+        "additionalProperties": false,
+        "type": "object",
+        "properties": {
+          "t": {
+            "type": "string",
+            "const": "state"
+          },
+          "snapshot": {
+            "$ref": "#/definitions/CommandSnapshot"
+          },
+          "v": {
+            "type": "string",
+            "const": "1.0"
+          },
+          "sessionId": {
+            "type": "string"
+          },
+          "commandId": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "eventId": {
+            "type": "string"
+          },
+          "cursor": {
+            "type": [
+              "null",
+              "number"
+            ]
+          },
+          "revision": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "commandId",
+          "cursor",
+          "eventId",
+          "revision",
+          "sessionId",
+          "snapshot",
+          "t",
+          "v"
+        ]
+      },
+      {
+        "additionalProperties": false,
+        "type": "object",
+        "properties": {
+          "t": {
+            "type": "string",
+            "const": "result"
+          },
+          "status": {
+            "type": "number"
+          },
+          "body": {
+            "$ref": "#/definitions/CommandSnapshot"
+          },
+          "v": {
+            "type": "string",
+            "const": "1.0"
+          },
+          "sessionId": {
+            "type": "string"
+          },
+          "commandId": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "eventId": {
+            "type": "string"
+          },
+          "cursor": {
+            "type": [
+              "null",
+              "number"
+            ]
+          },
+          "revision": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "body",
+          "commandId",
+          "cursor",
+          "eventId",
+          "revision",
+          "sessionId",
+          "status",
+          "t",
+          "v"
+        ]
+      },
+      {
+        "additionalProperties": false,
+        "type": "object",
+        "properties": {
+          "t": {
+            "type": "string",
+            "const": "error"
+          },
+          "error": {
+            "$ref": "#/definitions/AgentError"
+          },
+          "v": {
+            "type": "string",
+            "const": "1.0"
+          },
+          "sessionId": {
+            "type": "string"
+          },
+          "commandId": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "eventId": {
+            "type": "string"
+          },
+          "cursor": {
+            "type": [
+              "null",
+              "number"
+            ]
+          },
+          "revision": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "commandId",
+          "cursor",
+          "error",
+          "eventId",
+          "revision",
+          "sessionId",
+          "t",
+          "v"
+        ]
+      }
+    ],
+    "definitions": {
+      "ToolRequest": {
+        "type": "object",
+        "properties": {
+          "commandId": {
+            "type": "string"
+          },
+          "parentCommandId": {
+            "type": "string"
+          },
+          "tool": {
+            "type": "string"
+          },
+          "toolVersion": {
+            "type": "string"
+          },
+          "args": {
+            "$ref": "#/definitions/Json"
+          },
+          "argsHash": {
+            "type": "string"
+          },
+          "workspaceId": {
+            "type": "string"
+          },
+          "expectedWorkspaceRevision": {
+            "type": "string"
+          },
+          "policyRevision": {
+            "type": "string"
+          },
+          "expiresAt": {
+            "type": "number"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "args",
+          "argsHash",
+          "commandId",
+          "expectedWorkspaceRevision",
+          "expiresAt",
+          "parentCommandId",
+          "policyRevision",
+          "tool",
+          "toolVersion",
+          "workspaceId"
+        ]
+      },
+      "Json": {
+        "anyOf": [
+          {
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/Json"
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/definitions/Json"
+            }
+          },
+          {
+            "type": [
+              "null",
+              "string",
+              "number",
+              "boolean"
+            ]
+          }
+        ]
+      },
+      "ApprovalRequest": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "commandId": {
+            "type": "string"
+          },
+          "actionHash": {
+            "type": "string"
+          },
+          "summary": {
+            "type": "string"
+          },
+          "actions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/Action"
+            }
+          },
+          "expiresAt": {
+            "type": "number"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "actionHash",
+          "actions",
+          "commandId",
+          "expiresAt",
+          "id",
+          "summary"
+        ]
+      },
+      "Action": {
+        "enum": [
+          "destructive",
+          "execute",
+          "git-history",
+          "network",
+          "production",
+          "read",
+          "write"
+        ],
+        "type": "string"
+      },
+      "ReceiptAck": {
+        "type": "object",
+        "properties": {
+          "recorded": {
+            "type": "boolean",
+            "const": true
+          },
+          "commandId": {
+            "type": "string"
+          },
+          "receiptHash": {
+            "type": "string"
+          },
+          "revision": {
+            "type": "number"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "commandId",
+          "receiptHash",
+          "recorded",
+          "revision"
+        ]
+      },
+      "Usage": {
+        "type": "object",
+        "properties": {
+          "inputTokens": {
+            "type": [
+              "null",
+              "number"
+            ]
+          },
+          "outputTokens": {
+            "type": [
+              "null",
+              "number"
+            ]
+          },
+          "estimated": {
+            "type": "boolean"
+          },
+          "percentUsed": {
+            "type": [
+              "null",
+              "number"
+            ]
+          },
+          "dailyPercentUsed": {
+            "type": [
+              "null",
+              "number"
+            ]
+          },
+          "paused": {
+            "type": "boolean"
+          },
+          "cost": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "amountMicro": {
+                    "type": "number"
+                  },
+                  "currency": {
+                    "type": "string"
+                  },
+                  "basis": {
+                    "enum": [
+                      "estimate",
+                      "settled"
+                    ],
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": false,
+                "required": [
+                  "amountMicro",
+                  "basis",
+                  "currency"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "chargedAmountMicro": {
+            "type": [
+              "null",
+              "number"
+            ]
+          },
+          "billingUrl": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "billingUrl",
+          "chargedAmountMicro",
+          "cost",
+          "dailyPercentUsed",
+          "estimated",
+          "inputTokens",
+          "outputTokens",
+          "paused",
+          "percentUsed"
+        ]
+      },
+      "CommandSnapshot": {
+        "type": "object",
+        "properties": {
+          "sessionId": {
+            "type": "string"
+          },
+          "commandId": {
+            "type": "string"
+          },
+          "parentCommandId": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "state": {
+            "$ref": "#/definitions/State"
+          },
+          "revision": {
+            "type": "number"
+          },
+          "conversationSeq": {
+            "type": "number"
+          },
+          "result": {
+            "$ref": "#/definitions/Json"
+          },
+          "unresolvedTools": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "usage": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/Usage"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "error": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/AgentError"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "execution": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "state": {
+                    "enum": [
+                      "claimed",
+                      "denied",
+                      "ready",
+                      "recorded",
+                      "uncertain"
+                    ],
+                    "type": "string"
+                  },
+                  "claimId": {
+                    "type": [
+                      "null",
+                      "string"
+                    ]
+                  },
+                  "executorId": {
+                    "type": [
+                      "null",
+                      "string"
+                    ]
+                  },
+                  "argsHash": {
+                    "type": "string"
+                  },
+                  "receiptHash": {
+                    "type": [
+                      "null",
+                      "string"
+                    ]
+                  }
+                },
+                "additionalProperties": false,
+                "required": [
+                  "argsHash",
+                  "claimId",
+                  "executorId",
+                  "receiptHash",
+                  "state"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "commandId",
+          "conversationSeq",
+          "error",
+          "execution",
+          "parentCommandId",
+          "result",
+          "revision",
+          "sessionId",
+          "state",
+          "unresolvedTools",
+          "usage"
+        ]
+      },
+      "State": {
+        "enum": [
+          "abandoned",
+          "accepted",
+          "awaiting_approval",
+          "awaiting_tool",
+          "cancel_requested",
+          "cancelled",
+          "committed",
+          "failed",
+          "running",
+          "uncertain"
+        ],
+        "type": "string"
+      },
+      "AgentError": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "enum": [
+              "CAPABILITY_MISSING",
+              "COMMAND_CONFLICT",
+              "CONTEXT_TOO_LARGE",
+              "CURSOR_EXPIRED",
+              "EXECUTION_UNCERTAIN",
+              "FORBIDDEN",
+              "INTERNAL",
+              "INVALID_REQUEST",
+              "MODEL_UNAVAILABLE",
+              "POLICY_DENIED",
+              "PROTOCOL_UNSUPPORTED",
+              "QUOTA_EXCEEDED",
+              "RATE_LIMITED",
+              "REQUEST_EXPIRED",
+              "REVISION_CONFLICT",
+              "TENANT_MISMATCH",
+              "TURN_UNRESOLVED",
+              "UNAUTHENTICATED"
+            ],
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "commandId": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "retry": {
+            "enum": [
+              "never",
+              "read-status",
+              "same-id-after-delay"
+            ],
+            "type": "string"
+          },
+          "retryAfterMs": {
+            "type": [
+              "null",
+              "number"
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "code",
+          "commandId",
+          "message",
+          "retry",
+          "retryAfterMs"
+        ]
+      }
+    },
+    "$schema": "http://json-schema.org/draft-07/schema#"
+  },
+  "ToolRequest": {
+    "type": "object",
+    "properties": {
+      "commandId": {
+        "type": "string"
+      },
+      "parentCommandId": {
+        "type": "string"
+      },
+      "tool": {
+        "type": "string"
+      },
+      "toolVersion": {
+        "type": "string"
+      },
+      "args": {
+        "$ref": "#/definitions/Json"
+      },
+      "argsHash": {
+        "type": "string"
+      },
+      "workspaceId": {
+        "type": "string"
+      },
+      "expectedWorkspaceRevision": {
+        "type": "string"
+      },
+      "policyRevision": {
+        "type": "string"
+      },
+      "expiresAt": {
+        "type": "number"
+      }
+    },
+    "additionalProperties": false,
+    "required": [
+      "args",
+      "argsHash",
+      "commandId",
+      "expectedWorkspaceRevision",
+      "expiresAt",
+      "parentCommandId",
+      "policyRevision",
+      "tool",
+      "toolVersion",
+      "workspaceId"
+    ],
+    "definitions": {
+      "Json": {
+        "anyOf": [
+          {
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/Json"
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/definitions/Json"
+            }
+          },
+          {
+            "type": [
+              "null",
+              "string",
+              "number",
+              "boolean"
+            ]
+          }
+        ]
+      }
+    },
+    "$schema": "http://json-schema.org/draft-07/schema#"
+  },
+  "ClaimRequest": {
+    "type": "object",
+    "properties": {
+      "claimId": {
+        "type": "string"
+      },
+      "executorId": {
+        "type": "string"
+      },
+      "argsHash": {
+        "type": "string"
+      },
+      "approvalDecisionId": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "policyRevision": {
+        "type": "string"
+      }
+    },
+    "additionalProperties": false,
+    "required": [
+      "approvalDecisionId",
+      "argsHash",
+      "claimId",
+      "executorId",
+      "policyRevision"
+    ],
+    "$schema": "http://json-schema.org/draft-07/schema#"
+  },
+  "ExecutionReceipt": {
+    "type": "object",
+    "properties": {
+      "receiptId": {
+        "type": "string"
+      },
+      "sessionId": {
+        "type": "string"
+      },
+      "commandId": {
+        "type": "string"
+      },
+      "parentCommandId": {
+        "type": "string"
+      },
+      "claimId": {
+        "type": "string"
+      },
+      "executorId": {
+        "type": "string"
+      },
+      "argsHash": {
+        "type": "string"
+      },
+      "workspaceId": {
+        "type": "string"
+      },
+      "policyRevision": {
+        "type": "string"
+      },
+      "approvalDecisionId": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "state": {
+        "enum": [
+          "cancelled-known",
+          "denied",
+          "failed-known",
+          "succeeded",
+          "uncertain"
+        ],
+        "type": "string"
+      },
+      "startedAt": {
+        "type": [
+          "null",
+          "number"
+        ]
+      },
+      "endedAt": {
+        "type": "number"
+      },
+      "exitCode": {
+        "type": [
+          "null",
+          "number"
+        ]
+      },
+      "signal": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "output": {
+        "anyOf": [
+          {
+            "type": "object",
+            "properties": {
+              "sha256": {
+                "type": "string"
+              },
+              "excerpt": {
+                "type": "string"
+              },
+              "bytes": {
+                "type": "number"
+              },
+              "truncated": {
+                "type": "boolean"
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "bytes",
+              "excerpt",
+              "sha256",
+              "truncated"
+            ]
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "effects": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string"
+            },
+            "beforeHash": {
+              "type": [
+                "null",
+                "string"
+              ]
+            },
+            "afterHash": {
+              "type": [
+                "null",
+                "string"
+              ]
+            },
+            "status": {
+              "enum": [
+                "unknown",
+                "verified"
+              ],
+              "type": "string"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "afterHash",
+            "beforeHash",
+            "path",
+            "status"
+          ]
+        }
+      },
+      "result": {
+        "$ref": "#/definitions/Json"
+      },
+      "evidence": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "receiptHash": {
+        "type": "string"
+      }
+    },
+    "additionalProperties": false,
+    "required": [
+      "approvalDecisionId",
+      "argsHash",
+      "claimId",
+      "commandId",
+      "effects",
+      "endedAt",
+      "evidence",
+      "executorId",
+      "exitCode",
+      "output",
+      "parentCommandId",
+      "policyRevision",
+      "receiptHash",
+      "receiptId",
+      "result",
+      "sessionId",
+      "signal",
+      "startedAt",
+      "state",
+      "workspaceId"
+    ],
+    "definitions": {
+      "Json": {
+        "anyOf": [
+          {
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/Json"
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/definitions/Json"
+            }
+          },
+          {
+            "type": [
+              "null",
+              "string",
+              "number",
+              "boolean"
+            ]
+          }
+        ]
+      }
+    },
+    "$schema": "http://json-schema.org/draft-07/schema#"
+  },
+  "ApprovalDecision": {
+    "type": "object",
+    "properties": {
+      "id": {
+        "type": "string"
+      },
+      "commandId": {
+        "type": "string"
+      },
+      "actionHash": {
+        "type": "string"
+      },
+      "decision": {
+        "enum": [
+          "allow-once",
+          "deny"
+        ],
+        "type": "string"
+      },
+      "localDecisionId": {
+        "type": "string"
+      },
+      "policyRevision": {
+        "type": "string"
+      }
+    },
+    "additionalProperties": false,
+    "required": [
+      "actionHash",
+      "commandId",
+      "decision",
+      "id",
+      "localDecisionId",
+      "policyRevision"
+    ],
+    "$schema": "http://json-schema.org/draft-07/schema#"
+  },
+  "ContextChunk": {
+    "type": "object",
+    "properties": {
+      "path": {
+        "type": "string"
+      },
+      "sha256": {
+        "type": "string"
+      },
+      "content": {
+        "type": "string"
+      },
+      "revision": {
+        "type": "string"
+      },
+      "origin": {
+        "enum": [
+          "repository",
+          "tool",
+          "user"
+        ],
+        "type": "string"
+      },
+      "trust": {
+        "enum": [
+          "untrusted-data",
+          "user-input"
+        ],
+        "type": "string"
+      },
+      "classification": {
+        "enum": [
+          "project",
+          "sensitive-approved"
+        ],
+        "type": "string"
+      },
+      "consentId": {
+        "type": "string"
+      }
+    },
+    "additionalProperties": false,
+    "required": [
+      "classification",
+      "consentId",
+      "content",
+      "origin",
+      "path",
+      "revision",
+      "sha256",
+      "trust"
+    ],
+    "$schema": "http://json-schema.org/draft-07/schema#"
+  },
+  "Resolution": {
+    "type": "object",
+    "properties": {
+      "resolutionId": {
+        "type": "string"
+      },
+      "commandId": {
+        "type": "string"
+      },
+      "disposition": {
+        "enum": [
+          "abandon",
+          "verified-complete",
+          "verified-no-effect"
+        ],
+        "type": "string"
+      },
+      "evidence": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "receiptHash": {
+        "type": [
+          "null",
+          "string"
+        ]
+      }
+    },
+    "additionalProperties": false,
+    "required": [
+      "commandId",
+      "disposition",
+      "evidence",
+      "receiptHash",
+      "resolutionId"
+    ],
+    "$schema": "http://json-schema.org/draft-07/schema#"
+  }
+}
