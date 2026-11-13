@@ -32,6 +32,15 @@ export class ExecutionSupervisor implements P.ExecutionSupervisor {
       '/lib',
     ];
     if (fs.existsSync('/lib64')) args.push('--ro-bind', '/lib64', '/lib64');
+    if (!file.startsWith('/usr/')) {
+      assert(
+        file === fs.realpathSync(process.execPath) && !file.startsWith(root + path.sep),
+        'Only the installed CLI runtime can be mounted outside /usr',
+        'POLICY_DENIED',
+        4,
+      );
+      args.push('--ro-bind', file, file);
+    }
     args.push(
       '--symlink',
       'usr/bin',

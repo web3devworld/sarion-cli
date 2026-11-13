@@ -142,6 +142,7 @@ export class LocalToolRegistry implements P.LocalToolRegistry {
       const executable = fs.realpathSync(a.file);
       assert(
         (executable.startsWith('/usr/') ||
+          executable === fs.realpathSync(process.execPath) ||
           (process.platform === 'darwin' && executable.startsWith('/opt/homebrew/'))) &&
           !/\/(?:sudo|su|doas|pkexec|mount|umount|bwrap|unshare|nsenter|sh|bash|zsh|fish|powershell|pwsh|cmd)(?:\.exe)?$/.test(
             executable,

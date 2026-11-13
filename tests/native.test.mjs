@@ -77,7 +77,8 @@ test('native containment: workspace writes, host reads and network denied', asyn
   fs.mkdirSync(nested, { recursive: true });
   fs.writeFileSync(path.join(nested, '.env'), 'dependency secret');
   try {
-    assert.equal(sandboxProbe(root).verified, true, 'Native sandbox must actually start');
+    const probe = sandboxProbe(root);
+    assert.equal(probe.verified, true, probe.reason);
     const code = `const fs=require('fs'),net=require('net');let n=0;for(const p of [${JSON.stringify(secret)},'node_modules/fixture/.env']){try{if(fs.readFileSync(p,'utf8').includes('secret'))process.exit(20)}catch{}n++}try{fs.writeFileSync('escape','bad');process.exit(21)}catch{n++}const s=net.connect({host:'127.0.0.1',port:${listener.address().port}});s.on('connect',()=>process.exit(22));s.on('error',()=>process.exit(n===3?0:23));setTimeout(()=>process.exit(24),3000);`;
     const mac = process.platform === 'darwin';
     const args = mac

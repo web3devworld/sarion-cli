@@ -116,7 +116,10 @@ export class WorkspaceManager implements P.WorkspaceManager {
       { stdio: ['pipe', 'pipe', 'pipe'], env: cleanEnvironment() },
     );
     await new Promise<void>((resolve, reject) => {
-      c.stdout.once('data', () => resolve());
+      c.stdout.once('data', (data) => {
+        if (data.toString().trim() === 'locked') resolve();
+        else reject(new Failure('WORKSPACE_BUSY', 'Workspace lock was not confirmed', 5));
+      });
       c.once('error', reject);
       c.once('exit', (code) => {
         if (code !== null)

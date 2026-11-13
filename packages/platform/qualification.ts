@@ -22,7 +22,12 @@ export function sandboxProbe(root: string): {
       env: cleanEnvironment(),
       timeout: 10000,
     });
-    return { ...support, verified: p.status === 0 };
+    return {
+      ...support,
+      verified: p.status === 0,
+      reason:
+        p.status === 0 ? support.reason : p.stderr?.toString().slice(0, 2000) || 'Native sandbox failed',
+    };
   } finally {
     fs.rmSync(temp, { recursive: true, force: true });
   }
