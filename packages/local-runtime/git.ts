@@ -27,6 +27,7 @@ export class GitAdapter implements P.GitAdapter {
     private supervisor: ExecutionSupervisor,
     private allowedFiles: () => string[],
     private workspace?: P.WorkspaceHandle,
+    private readFile?: (file: string) => string,
   ) {}
   static read(w: P.WorkspaceHandle, args: string[], input?: string): string {
     const metadata = path.join(w.root, '.git');
@@ -87,10 +88,21 @@ export class GitAdapter implements P.GitAdapter {
     const selected = paths.length ? paths.filter((p) => allowed.includes(p)) : allowed;
     assert(selected.length <= 5000, 'Diff file limit exceeded');
     if (!selected.length) return '';
-    return redact(GitAdapter.read(w, ['diff', '--no-ext-diff', '--no-textconv', '--', ...selected])).slice(
-      0,
-      60000,
-    );
+    let diff = GitAdapter.read(w, ['diff', '--no-ext-diff', '--no-textconv', '--', ...selected]);
+    const untracked = GitAdapter.read(w, ['ls-files', '--others', '--exclude-standard', '-z', '--', ...selected])
+      .split('\0').filter(Boolean);
+    for (const file of untracked) {
+      if (diff.length >= 60000) break;
+      assert(selected.includes(file) && this.readFile, 'Untracked diff requires a protected file reader');
+      const text = this.readFile(file), lines = text.split('\n');
+      if (text.endsWith('\n')) lines.pop();
+      if (!text) lines.pop();
+      diff += `diff --git ${JSON.stringify('a/' + file)} ${JSON.stringify('b/' + file)}\n` +
+        `--- /dev/null\n+++ ${JSON.stringify('b/' + file)}\n@@ -0,0 +1,${lines.length} @@\n` +
+        lines.map(line => '+' + line + '\n').join('') +
+        (text && !text.endsWith('\n') ? '\\ No newline at end of file\n' : '');
+    }
+    return redact(diff).slice(0, 60000);
   }
   async plan(
     w: P.WorkspaceHandle,

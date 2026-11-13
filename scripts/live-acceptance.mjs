@@ -61,7 +61,7 @@ const run = (args, extra = {}) => {
     const result = events.findLast((e) => e.t === 'result')?.body;
     body = result
       ? { ...result, answer: result.result?.answer ?? null, streamEvents: events }
-      : events.at(-1);
+      : { ...events.at(-1), streamEvents: events };
   } catch {
     body = { error: 'Non-JSON response', stdout: p.stdout?.slice(0, 2000) };
   }
@@ -213,6 +213,8 @@ try {
     ],
     (b) =>
       b.state === 'committed' &&
+      b.streamEvents?.some(e => e.t === 'tool_request' && e.request.tool === 'patch.apply') &&
+      b.streamEvents?.some(e => e.t === 'tool_request' && e.request.tool === 'process.run') &&
       spawnSync(process.execPath, ['tests/calc.test.mjs'], { cwd: repo }).status === 0,
   );
   scenario(
@@ -229,6 +231,9 @@ try {
     ],
     (b) =>
       b.state === 'committed' &&
+      new Set(b.streamEvents?.filter(e => e.t === 'tool_request' && e.request.tool === 'patch.apply')
+        .flatMap(e => e.request.args.files.map(f => f.path))).size >= 2 &&
+      b.streamEvents?.some(e => e.t === 'tool_request' && e.request.tool === 'process.run') &&
       fs.existsSync(path.join(repo, 'src/multiply.mjs')) &&
       spawnSync(process.execPath, ['tests/calc.test.mjs'], { cwd: repo }).status === 0,
   );

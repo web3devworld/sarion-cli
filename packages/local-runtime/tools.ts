@@ -63,7 +63,8 @@ export class LocalToolRegistry implements P.LocalToolRegistry {
   ) {
     this.supervisor = new ExecutionSupervisor(workspace, journal, permission);
     this.patch = new PatchManager(wm, workspace, journal, permission);
-    this.git = new GitAdapter(this.supervisor, () => permission.contextPaths(wm.files(workspace)), workspace);
+    this.git = new GitAdapter(this.supervisor, () => permission.contextPaths(wm.files(workspace)), workspace,
+      file => wm.read(workspace, file));
   }
   descriptors(): P.ToolDescriptor[] {
     return Object.entries(TOOL_SCHEMAS)

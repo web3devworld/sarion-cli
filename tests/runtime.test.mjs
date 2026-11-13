@@ -383,6 +383,19 @@ test('Git commit rejects a protected path staged outside the CLI', async () => {
   }
 });
 
+test('Git diff includes new source files through the protected reader and excludes secrets', async () => {
+  const f = await fixture();
+  try {
+    fs.writeFileSync(path.join(f.root, 'new.mjs'), 'export const product=(a,b)=>a*b;\n');
+    fs.writeFileSync(path.join(f.root, 'no-newline.txt'), 'tail');
+    const diff = await f.tools.git.diff(f.w, []);
+    assert.match(diff, /\+export const product=\(a,b\)=>a\*b;/);
+    assert.match(diff, /\+tail\n\\ No newline at end of file/);
+    assert.ok(!diff.includes('do-not-disclose') && !diff.includes('b/ignored.txt'));
+    assert.equal(await f.tools.git.diff(f.w, ['.env']), '');
+  } finally { f.close(); }
+});
+
 test('model empty fs.list directory means repository root and preserves exclusions', async () => {
   const f = await fixture();
   try {
