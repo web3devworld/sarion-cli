@@ -20,7 +20,12 @@ const obj = (properties: any, required: string[] = Object.keys(properties)) => (
 });
 export const TOOL_SCHEMAS: Record<string, any> = {
   'fs.read': obj({ path: text }),
-  'fs.list': obj({ directory: text }),
+  'fs.list': obj({
+    directory: {
+      type: 'string',
+      description: "Repository-relative directory; use '.' for root. Empty string is also root.",
+    },
+  }),
   'fs.search': obj({ query: text }),
   'patch.apply': obj({
     files: {
@@ -113,6 +118,7 @@ export class LocalToolRegistry implements P.LocalToolRegistry {
         typeof a.directory === 'string' && !a.directory.includes('..') && !path.isAbsolute(a.directory),
         'Invalid directory',
       );
+      plan.args = { ...a, directory: a.directory || '.' };
     } else if (r.tool === 'fs.search')
       assert(
         typeof a.query === 'string' && a.query.length > 0 && a.query.length <= 1000,

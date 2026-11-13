@@ -96,7 +96,9 @@ test('permissions deny default writes, shell and forged/expired grants', async (
     const plan = await f.tools.plan(r, f.w);
     assert.equal((await f.permission.evaluate(plan, 'read-only')).kind, 'deny');
     assert.equal((await f.permission.evaluate(plan, 'trusted-automation')).kind, 'deny');
-    await assert.rejects(f.permission.validate({ id: id(), planHash: plan.hash, expiresAt: Date.now() + 1e4 }, plan));
+    await assert.rejects(
+      f.permission.validate({ id: id(), planHash: plan.hash, expiresAt: Date.now() + 1e4 }, plan),
+    );
     await assert.rejects(
       f.permission.approve(
         { id: id(), commandId: r.commandId, actionHash: plan.hash, expiresAt: Date.now() + 1e4 },
@@ -174,7 +176,9 @@ test('journal encryption, CAS transitions, crash reopen and receipt idempotency'
     assert.equal((await j.pending())[0].state, 'executing');
     assert.equal(j.record(c).body.secret, 'fixture plaintext marker');
     j.close();
-    assert.ok(!fs.readFileSync(path.join(tmp, 'recovery.sqlite')).includes(Buffer.from('fixture plaintext marker')));
+    assert.ok(
+      !fs.readFileSync(path.join(tmp, 'recovery.sqlite')).includes(Buffer.from('fixture plaintext marker')),
+    );
     j = new RecoveryJournal(tmp, key);
   } finally {
     j.close();
@@ -202,7 +206,14 @@ test('explicit encrypted credential store never persists token plaintext and wro
 test('real isolated supervisor output, writable temp, read-only root and no duplicate dispatch', async (t) => {
   const f = await fixture();
   try {
-    const probe = spawnSync('/usr/bin/bwrap', ['--unshare-all', '--ro-bind', '/', '/', '--', '/usr/bin/true']);
+    const probe = spawnSync('/usr/bin/bwrap', [
+      '--unshare-all',
+      '--ro-bind',
+      '/',
+      '/',
+      '--',
+      '/usr/bin/true',
+    ]);
     if (probe.status !== 0) {
       t.skip('Host user namespace/bubblewrap unavailable: ' + probe.stderr.toString().slice(0, 180));
       return;
@@ -246,7 +257,14 @@ test('workspace OS lock excludes a second executor', async () => {
 test('real process timeout is uncertain and never retried automatically', async (t) => {
   const f = await fixture();
   try {
-    const probe = spawnSync('/usr/bin/bwrap', ['--unshare-all', '--ro-bind', '/', '/', '--', '/usr/bin/true']);
+    const probe = spawnSync('/usr/bin/bwrap', [
+      '--unshare-all',
+      '--ro-bind',
+      '/',
+      '/',
+      '--',
+      '/usr/bin/true',
+    ]);
     if (probe.status !== 0) {
       t.skip('Host isolation unavailable');
       return;
@@ -271,7 +289,14 @@ test('real process timeout is uncertain and never retried automatically', async 
 test('Git stage/commit require explicit approval and ignore hostile clean filters', async (t) => {
   const f = await fixture();
   try {
-    const probe = spawnSync('/usr/bin/bwrap', ['--unshare-all', '--ro-bind', '/', '/', '--', '/usr/bin/true']);
+    const probe = spawnSync('/usr/bin/bwrap', [
+      '--unshare-all',
+      '--ro-bind',
+      '/',
+      '/',
+      '--',
+      '/usr/bin/true',
+    ]);
     if (probe.status !== 0) {
       t.skip('Host isolation unavailable');
       return;
@@ -294,7 +319,10 @@ test('Git stage/commit require explicit approval and ignore hostile clean filter
     assert.equal(indexed.stdout, 'old A\n');
     const commit = request(f, 'git.commit', { message: 'Fixture commit' });
     const approved = await authorized(f, commit, 'approval-required');
-    assert.equal((await f.tools.execute(commit, approved.g, new AbortController().signal)).state, 'succeeded');
+    assert.equal(
+      (await f.tools.execute(commit, approved.g, new AbortController().signal)).state,
+      'succeeded',
+    );
     const secret = request(f, 'git.stage', { paths: ['.env'] });
     await assert.rejects(f.tools.plan(secret, f.w));
   } finally {
@@ -340,8 +368,32 @@ test('acknowledged source output expires while unknown receipts remain recoverab
 test('Git commit rejects a protected path staged outside the CLI', async () => {
   const f = await fixture();
   try {
-    assert.equal(spawnSync('/usr/bin/git',['-C',f.root,'add','-f','--','.env']).status,0);
-    await assert.rejects(f.tools.plan(request(f,'git.commit',{message:'must not include secret'}),f.w), /protected or unapproved/);
-    assert.match(spawnSync('/usr/bin/git',['-C',f.root,'diff','--cached','--name-only'],{encoding:'utf8'}).stdout,/\.env/);
-  } finally { f.close(); }
+    assert.equal(spawnSync('/usr/bin/git', ['-C', f.root, 'add', '-f', '--', '.env']).status, 0);
+    await assert.rejects(
+      f.tools.plan(request(f, 'git.commit', { message: 'must not include secret' }), f.w),
+      /protected or unapproved/,
+    );
+    assert.match(
+      spawnSync('/usr/bin/git', ['-C', f.root, 'diff', '--cached', '--name-only'], { encoding: 'utf8' })
+        .stdout,
+      /\.env/,
+    );
+  } finally {
+    f.close();
+  }
+});
+
+test('model empty fs.list directory means repository root and preserves exclusions', async () => {
+  const f = await fixture();
+  try {
+    const r = request(f, 'fs.list', { directory: '' });
+    const { g } = await authorized(f, r, 'read-only');
+    const receipt = await f.tools.execute(r, g, new AbortController().signal);
+    assert.equal(receipt.state, 'succeeded');
+    assert.ok(receipt.result.files.includes('a.txt'));
+    assert.ok(!receipt.result.files.includes('.env'));
+    assert.ok(!receipt.result.files.includes('ignored.txt'));
+  } finally {
+    f.close();
+  }
 });

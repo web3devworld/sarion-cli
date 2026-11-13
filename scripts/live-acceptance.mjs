@@ -13,9 +13,14 @@ if (!profile || !expectedEndpoint || !process.env.SARION_ACCEPTANCE_BOUNDARY_ID)
     'Set SARION_ACCEPTANCE_PROFILE, SARION_ACCEPTANCE_ENDPOINT and SARION_ACCEPTANCE_BOUNDARY_ID for an isolated, owner-authorized service after sarion login.',
   );
 const entry = path.resolve('bin/sarion.mjs');
-const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'sarion-live-acceptance-'));
+const previous = process.env.SARION_ACCEPTANCE_EXISTING_REPORT
+  ? JSON.parse(fs.readFileSync(process.env.SARION_ACCEPTANCE_EXISTING_REPORT, 'utf8'))
+  : null;
+const tmp = previous
+  ? path.dirname(previous.fixture)
+  : fs.mkdtempSync(path.join(os.tmpdir(), 'sarion-live-acceptance-'));
 const repo = path.join(tmp, 'repo');
-fs.mkdirSync(repo);
+if (!previous) fs.mkdirSync(repo);
 const report = {
   evidence: 'REAL SERVICE REQUESTS; no simulated inference',
   endpoint: expectedEndpoint,
@@ -37,7 +42,9 @@ const run = (args, extra = {}) => {
       '--project',
       repo,
       '--format',
-      'json',
+      ...(['ask', 'agent'].includes(args[0])
+        ? ['ndjson', '--model', process.env.SARION_ACCEPTANCE_MODEL ?? 'auto']
+        : ['json']),
       ...(args[0] === 'agent'
         ? ['--max-steps', '10', '--max-tool-calls', '16', '--max-output-tokens', '2048', '--timeout', '120']
         : []),
@@ -46,7 +53,15 @@ const run = (args, extra = {}) => {
   );
   let body;
   try {
-    body = JSON.parse(p.stdout);
+    const events = p.stdout
+      .trim()
+      .split('\n')
+      .filter(Boolean)
+      .map((line) => JSON.parse(line));
+    const result = events.findLast((e) => e.t === 'result')?.body;
+    body = result
+      ? { ...result, answer: result.result?.answer ?? null, streamEvents: events }
+      : events.at(-1);
   } catch {
     body = { error: 'Non-JSON response', stdout: p.stdout?.slice(0, 2000) };
   }
@@ -65,29 +80,31 @@ try {
     boundary: who.body.boundary,
     credentialExpiresAt: who.body.credentialExpiresAt,
   };
-  fs.mkdirSync(path.join(repo, 'src'));
-  fs.mkdirSync(path.join(repo, 'tests'));
-  fs.writeFileSync(path.join(repo, 'src/calc.mjs'), 'export const add=(a,b)=>a-b;\n');
-  fs.writeFileSync(
-    path.join(repo, 'tests/calc.test.mjs'),
-    'import assert from "node:assert/strict"; import {add} from "../src/calc.mjs"; assert.equal(add(2,3),5);\n',
-  );
-  for (const args of [
-    ['init', '-q', repo],
-    ['-C', repo, 'add', '.'],
-    [
-      '-C',
-      repo,
-      '-c',
-      'user.name=Acceptance',
-      '-c',
-      'user.email=acceptance@example.invalid',
-      'commit',
-      '-qm',
-      'fixture baseline',
-    ],
-  ]) {
-    if (spawnSync('git', args).status !== 0) throw Error('Could not prepare isolated repository');
+  if (!previous) {
+    fs.mkdirSync(path.join(repo, 'src'));
+    fs.mkdirSync(path.join(repo, 'tests'));
+    fs.writeFileSync(path.join(repo, 'src/calc.mjs'), 'export const add=(a,b)=>a-b;\n');
+    fs.writeFileSync(
+      path.join(repo, 'tests/calc.test.mjs'),
+      'import assert from "node:assert/strict"; import {add} from "../src/calc.mjs"; assert.equal(add(2,3),5);\n',
+    );
+    for (const args of [
+      ['init', '-q', repo],
+      ['-C', repo, 'add', '.'],
+      [
+        '-C',
+        repo,
+        '-c',
+        'user.name=Acceptance',
+        '-c',
+        'user.email=acceptance@example.invalid',
+        'commit',
+        '-qm',
+        'fixture baseline',
+      ],
+    ]) {
+      if (spawnSync('git', args).status !== 0) throw Error('Could not prepare isolated repository');
+    }
   }
   const policy = path.join(tmp, 'policy.json');
   fs.writeFileSync(
@@ -117,9 +134,23 @@ try {
     { mode: 0o600 },
   );
   const scenario = (name, args, check) => {
+    const old = previous?.scenarios.find((s) => s.name === name && s.passed);
+    if (old && check(old.body)) {
+      report.scenarios.push({ ...old, reused: true });
+      console.log(JSON.stringify({ scenario: name, passed: true, reused: true }));
+      return old.body;
+    }
     const result = run(args);
     const passed = result.status === 0 && check(result.body);
     report.scenarios.push({ name, passed, ...result });
+    console.log(
+      JSON.stringify({
+        scenario: name,
+        passed,
+        state: result.body?.state,
+        sessionId: result.body?.sessionId,
+      }),
+    );
     const usage = result.body.usage;
     if (usage) {
       report.usage.inputTokens += usage.inputTokens ?? 0;
@@ -129,11 +160,25 @@ try {
       throw Error('Acceptance failed: ' + name + '; stop paid diagnostics and inspect the saved report');
     return result.body;
   };
-  const nonce = randomUUID();
+  const nonce =
+    previous?.scenarios.find((s) => s.name === 'continuity after process restart')?.body.answer.trim() ??
+    randomUUID();
+  const memoryMarker = process.env.SARION_ACCEPTANCE_MEMORY_MARKER;
   const first = scenario(
     'genuine streaming conversation',
-    ['ask', 'Remember this nonsecret acceptance challenge exactly: ' + nonce + '. Repeat it once.'],
-    (b) => b.state === 'committed' && b.answer?.includes(nonce),
+    [
+      'ask',
+      'Remember this nonsecret acceptance challenge exactly: ' +
+        nonce +
+        '. Repeat it once.' +
+        (memoryMarker
+          ? ' Also recall the nonsecret CLI live acceptance memory marker from my saved memory and print it exactly.'
+          : ''),
+    ],
+    (b) =>
+      b.state === 'committed' &&
+      b.answer?.includes(nonce) &&
+      (!memoryMarker || b.answer?.includes(memoryMarker)),
   );
   scenario(
     'continuity after process restart',
@@ -149,7 +194,10 @@ try {
       '--permission-mode',
       'read-only',
     ],
-    (b) => b.state === 'committed',
+    (b) =>
+      b.state === 'committed' &&
+      !!b.answer?.trim() &&
+      b.streamEvents?.some((e) => e.t === 'tool_request' && e.request.tool === 'fs.read'),
   );
   scenario(
     'single-file repair and real failing-test diagnosis',
