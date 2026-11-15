@@ -66,9 +66,22 @@ attempts and repairs; staging was then retired and device credentials revoked.
 No production activation or package publication occurred. This is a small real
 coding acceptance fixture, not a general competence or adversarial benchmark.
 
-The final unsigned package SHA-256 is
+The historical 2026-11-13 unsigned package SHA-256 was
 `fe9fa5c1b5cf9740193567a6230c55ce59ffa97df261573aca7e0be2478023dd`
 (831,078 bytes), built from implementation 93e0c65. Its SBOM/provenance and exact
 manifest are recorded with the companion live evidence. Operator signing remains
 required for controlled distribution. Enterprise infrastructure and Linux Secret
 Service session qualification remain as described above.
+
+
+Production acceptance subsequently completed five genuine operations on Worker
+`9a934c63-49ab-465e-8e2f-de9962dd43f5`, source
+`b20b5c3a296aef2da5ad6e5ca735e203f78992f9`; SARION documentation PR #425
+records the redacted closure and private authoritative receipt references.
+That campaign used reviewed client `5b5a719672d6923a1f0e63a3e8e4238927ae85a2`.
+The distribution successor changes documentation and omits debug source maps
+from the package; runtime/authentication/protocol sources remain identical.
+Its exact package checksum is in its accompanying `manifest.json` and
+`SHA256SUMS`, superseding the historical package bytes above for distribution.
+Signing and owner-authorized delivery remain required; package preparation is
+not publication. No additional paid acceptance operation is required or authorized.

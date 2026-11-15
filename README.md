@@ -1,6 +1,83 @@
 # SARION CLI v2 preview
 
-Independent TypeScript/Node 24 terminal client for CORTEX Agent Protocol 1.0. The companion SARION adapter must be installed and enabled on an isolated service before remote commands work. This client does not silently use the legacy stateless CLI endpoint. No production activation is included.
+Independent TypeScript/Node 24 terminal client for CORTEX Agent Protocol 1.0. The production SARION adapter is available at https://sarion.volta.quest; an active, entitled SARION account is required. This client does not silently use the legacy stateless CLI endpoint. Client installation does not change backend activation.
+
+## Install the signed release
+
+This preview is distributed as an owner-approved offline Node package, not through
+npm's public registry. Obtain the signed bundle and reviewed installer/verifier
+from the approved SARION release channel. Confirm the operator's public key and
+SPKI SHA-256 fingerprint through a separate authenticated channel. An unsigned
+candidate is not an installable approved release.
+
+Prerequisites: Node **24.21.0 or later within Node 24**, npm, Git and Python 3.
+Supported runtimes are Linux/WSL2, macOS and Windows; the package contains portable
+JavaScript, not standalone executables or architecture-specific installers.
+Native qualification covered Linux x64, macOS Intel and Windows x64. Other CPU
+architectures are unverified. Windows supports protected file tools and DPAPI;
+use WSL2 for processes and Git mutations. Linux processes need bubblewrap and
+util-linux `prlimit`; macOS processes use the system Seatbelt sandbox.
+
+```sh
+node /reviewed/tools/verify-release.mjs /offline/bundle /trusted/operator-public.pem CONFIRMED_SPKI_SHA256
+SARION_RELEASE_PUBLIC_KEY=/trusted/operator-public.pem \
+  node /reviewed/tools/install.mjs /offline/bundle "$HOME/.local"
+export PATH="$HOME/.local/bin:$PATH"
+sarion --version
+sarion --help
+```
+
+Windows PowerShell: set `$env:SARION_RELEASE_PUBLIC_KEY` to the trusted public
+PEM, run the same verifier, then
+`node C:\reviewed\tools\install.mjs C:\offline\bundle "$env:LOCALAPPDATA\Sarion"`.
+Add that prefix to PATH and use `sarion.cmd`.
+
+## Production first run
+
+```sh
+sarion endpoint add production --url https://sarion.volta.quest --boundary cloud
+sarion endpoint use production
+sarion login
+sarion whoami
+sarion models
+sarion usage
+sarion agent 'Summarize the project structure without changing files' --model auto --permission-mode read-only --share-context
+sarion usage
+sarion logout
+```
+
+Login prints a device authorization URL/code. Open the URL in your normal browser,
+sign into SARION, inspect the requested access and approve the device; the CLI
+polls for its scoped credential. Never copy browser cookies. Use `--model auto`
+or an entitled model ID shown by `sarion models`; availability follows server
+subscription policy. The first agent request above performs paid inference.
+
+**CLI usage consumes the account's existing SARION subscription credits**, shared
+with web/voice usage. It does not provide unlimited inference or bypass plan
+limits. `sarion usage` displays the server's usage/balance response; it is not a
+provider-invoice audit. Insufficient credits or missing entitlement may deny work.
+
+`--share-context` explicitly authorizes selected project data to leave the host.
+Review exclusions and the working directory first. Read-only permissions prevent
+local mutations; process/write modes require their own approvals. Credentials
+are encrypted through the OS broker or the explicit encrypted-store fallback
+below. Never commit the credential store, passphrase or recovery journal.
+
+Updates are explicit: stop active sessions, verify the next signed bundle and
+run the same installer at the same prefix. There is no automatic update check.
+Preserve recovery journals and unresolved receipts; incompatible schema downgrades
+are refused. `sarion logout` revokes the current CLI credential and clears local
+access. `logout --local-only` leaves remote revocation pending; use an authorized
+owner/support revocation procedure if you cannot reconnect. Reauthorize each
+profile separately after revocation; do not replay uncertain effects.
+
+Troubleshooting: check Node version/PATH, `sarion endpoint doctor`,
+`sarion sandbox doctor`, and `sarion whoami`. A missing OS broker requires
+`sarion login --encrypted-store` with a protected passphrase, not plaintext
+storage. An expired/refused credential requires a fresh device login; plan or
+credit denials require account resolution. Signature failures require a trusted
+replacement bundle/key confirmation. Preserve journals on interrupted or uncertain
+tasks and inspect `sarion recover SESSION_ID` before further mutations.
 
 ## Build and install
 
@@ -59,4 +136,4 @@ Unknown effects are quarantined. Do not delete a journal or reissue a command to
 
 ## Verification and status
 
-`npm test` uses deterministic protocol fixtures and real native file/process checks. [Distribution](docs/DISTRIBUTION.md) covers SBOM, provenance, signing, upgrades and uninstallation. Real SARION inference requires a provisioned isolated service and owner login; native Linux/macOS/Windows checks passed in [CI](https://github.com/web3devworld/sarion-cli/actions/runs/43404927918) for the documented scope; fixture model responses do not establish live acceptance. See companion SARION `docs/cli-v2/` reports for exact results and release requirements.
+`npm test` uses deterministic protocol fixtures and real native file/process checks. [Distribution](docs/DISTRIBUTION.md) covers SBOM, provenance, signing, upgrades and uninstallation. Production inference requires device authorization and available subscription credits; native Linux/macOS/Windows checks passed in [CI](https://github.com/web3devworld/sarion-cli/actions/runs/43404927918) for the documented scope; fixture model responses do not establish live acceptance. See companion SARION `docs/cli-v2/` reports for exact results and release requirements.
