@@ -12,7 +12,10 @@ fs.rmSync(stage, { recursive: true, force: true });
 fs.mkdirSync(stage);
 const meta = JSON.parse(fs.readFileSync("package.json", "utf8"));
 for (const dir of ["bin", "dist", "LICENSES"])
-  fs.cpSync(dir, path.join(stage, dir), { recursive: true });
+  fs.cpSync(dir, path.join(stage, dir), {
+    recursive: true,
+    filter: (source) => !source.endsWith(".map"),
+  });
 fs.copyFileSync("README.md", path.join(stage, "README.md"));
 const release = {
   ...meta,

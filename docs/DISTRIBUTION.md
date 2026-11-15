@@ -15,7 +15,7 @@ node scripts/verify-artifact.mjs
 npm audit --json > artifacts/dependency-audit.json
 ```
 
-`artifacts/` contains the dependency-free universal Node package, SHA-256 manifest,
+`artifacts/` contains the dependency-free universal Node package, SHA-256 manifest (excluding debug source maps from the package),
 CycloneDX SBOM and source/lock/build provenance. The manifest records Linux,
 macOS and Windows targets and hashes the SBOM/provenance. Build twice with the
 same source/toolchain and compare package SHA-256. Unsigned provenance is evidence,
@@ -57,3 +57,21 @@ Uninstall using `npm uninstall --global --ignore-scripts --offline --no-audit
 if offline, `logout --local-only` reports remote revocation pending. Uninstalling
 does not erase recovery state or revoke remote credentials. Retain unresolved
 journals until effects are reconciled and credentials revoked through the owner.
+
+
+## Production closure and publication boundary — 2026-11-15
+
+Backend acceptance is complete; see SARION documentation PR #425. Client runtime
+and protocol contracts remain those of reviewed client `5b5a719672d6923a1f0e63a3e8e4238927ae85a2`.
+The distribution successor changes packaging/documentation only, retaining version
+`2.0.0-preview.2`. Reuse the existing 157-test backend evidence, native client
+qualification and five-operation genuine production acceptance. Do not repeat
+paid operations to prepare this bundle.
+
+The approved channel remains owner-signed offline distribution. `private: true`
+and `UNLICENSED` are intentional. No npm publishing authorization or GitHub
+Release delivery authorization is established by package preparation. Do not
+remove `private`, push release tags or publish assets automatically. Owner must
+designate the existing signing key, confirm its fingerprint, approve the exact
+reviewed source/hash and audience, then deliver the signed bundle through the
+approved internal channel. No new signing identity is needed by this workflow.
